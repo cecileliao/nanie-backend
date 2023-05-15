@@ -1,53 +1,42 @@
 const mongoose = require('mongoose');
 
-const userSchema = mongoose.Schema({
-  email: String,
-  password: String,
-  token: String,
+const availabilitySchema = mongoose.Schema({
+  startingDay: Date,
+  endingDay: Date,
+  startingHour: Date,
+  endingHour: Date
 });
 
-// Aidant
-// photoAidant: String
-// nameAidant: String 
-// firstNameAidant: String
+const aidantUserSchema = mongoose.Schema({
+  token: String,
+  photoAidant: String,
+  nameAidant: String,
+  firstNameAidant: String,
+  emailAidant: String,
+  passwordAidant: String,
+  signupAidant: Date,
+  phoneAidant: String,
+  ageAidant: Number,
+  sexeAidant: String,
+  addressAidant: String,
+  zipAidant: String,
+  cityAidant: String, 
+  car: Boolean,
+  introBioAidant: String,
+  longBioAidant: String,
+  abilitiesAidant: String,
+  ratebyHour: Number,
+  averageNote: Number,
+  averageHeart: Number,
+  mobility: Boolean,
+  hygiene: Boolean,
+  cooking: Boolean,
+  entertainment: Boolean,
+  availabilities: [availabilitySchema],
+  missions: [{ type: mongoose.Schema.Types.ObjectId, ref:'missions' }],
+});
 
-// emailAidant: String
-// passwordAidant: String
-// signupAidant: Date
+const AidantUser = mongoose.model('aidantUsers', aidantUserSchema);
 
-// phoneAidant: Number
-// ageAidant: Number 
-// sexeAidant: String
-
-// adressAidant: String
-// zipAidant: String
-// cityAidant: String 
-
-// car: Booleen 
-
-// introBioAidant: String
-// longBioAidant: String
-// abilitiesAidant: String
-
-// ratebyHour: Number
-// averageNote: Number
-// averageHeart: Number
-
-// mobility: Boolean
-// hygiene: Boolean
-// cooking: Boolean
-// entertainment: Boolean
-
-// availabilities : [{}]
-// Availabilities
-// startingDay: Date
-// endingDay: Date
-// startingHour: Date
-// endingHour: Date
-
-// **Missions/Conversations: ObjectID
-
-const User = mongoose.model('users', userSchema);
-
-module.exports = User;
+module.exports = AidantUser;
 

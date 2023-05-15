@@ -1,33 +1,33 @@
-// Parent
-// photoParent: String
-// nameParent: String
-// firstNameParent: String
+const mongoose = require('mongoose');
 
-// emailParent: String
-// passwordParent: String
+const parentUserSchema = mongoose.Schema({
+    token: String,
+    photoParent: String,
+    nameParent: String,
+    firstNameParent: String,
+    emailParent: String,
+    passwordParent: String,
+    phoneParent: String,
+    shortBioParent: String,
+    signupParent: Date,
+    averageNoteParent: Number,
+    nameAine: String,
+    firstNameAine: String,
+    ageAine: Number,
+    sexeAine: String,
+    addressAine: String, 
+    zipAine: String,
+    cityAine: String,
+    introAine: String,
+    longBioAine: String,
+    gemProfil: String,
+    mobility: Boolean,
+    hygiene: Boolean,
+    cooking: Boolean,
+    entertainment: Boolean,
+    missions: [{ type: mongoose.Schema.Types.ObjectId, ref:'missions' }],
+});
 
-// phoneParent: Number
-// shortBioParent: String
-// signupParent: Date
-// averageNoteParent: Number
+const ParentUser = mongoose.model('parentUsers', parentUserSchema);
 
-// Aîné
-// nameAine: String 
-// firstNameAine: String
-// ageAine: Number
-// sexeAine: String
-
-// addressAine: String 
-// zipAine: String
-// cityAine: String
-
-// introAine: String
-// longBioAine: String
-// gemProfil: String
-
-// mobility: Boolean
-// hygiene: Boolean
-// cooking: Boolean
-// entertainment: Boolean
-
-// ** Missions/Conversations: ObjectID
+module.exports = ParentUser;
