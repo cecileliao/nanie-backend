@@ -6,46 +6,46 @@ const userSchema = mongoose.Schema({
   token: String,
 });
 
-Aidant
-photoAidant: String
-nameAidant: String 
-firstNameAidant: String
+// Aidant
+// photoAidant: String
+// nameAidant: String 
+// firstNameAidant: String
 
-emailAidant: String
-passwordAidant: String
-signupAidant: Date
+// emailAidant: String
+// passwordAidant: String
+// signupAidant: Date
 
-phoneAidant: Number
-ageAidant: Number 
-sexeAidant: String
+// phoneAidant: Number
+// ageAidant: Number 
+// sexeAidant: String
 
-adressAidant: String
-zipAidant: String
-cityAidant: String 
+// adressAidant: String
+// zipAidant: String
+// cityAidant: String 
 
-car: Booleen 
+// car: Booleen 
 
-introBioAidant: String
-longBioAidant: String
-abilitiesAidant: String
+// introBioAidant: String
+// longBioAidant: String
+// abilitiesAidant: String
 
-ratebyHour: Number
-averageNote: Number
-averageHeart: Number
+// ratebyHour: Number
+// averageNote: Number
+// averageHeart: Number
 
-mobility: Boolean
-hygiene: Boolean
-cooking: Boolean
-entertainment: Boolean
+// mobility: Boolean
+// hygiene: Boolean
+// cooking: Boolean
+// entertainment: Boolean
 
-availabilities : [{}]
-Availabilities
-startingDay: Date
-endingDay: Date
-startingHour: Date
-endingHour: Date
+// availabilities : [{}]
+// Availabilities
+// startingDay: Date
+// endingDay: Date
+// startingHour: Date
+// endingHour: Date
 
-**Missions/Conversations: ObjectID
+// **Missions/Conversations: ObjectID
 
 const User = mongoose.model('users', userSchema);
 
