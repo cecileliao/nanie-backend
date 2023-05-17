@@ -10,17 +10,17 @@ const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
 
 router.post('/signup', (req, res) => {
-  console.log(req.body)
-  if (!checkBody(req.body, ['emailParent', 'passwordParent'])) {
+
+  if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
 
   // Check if the user has not already been registered
-  ParentUser.findOne({ emailParent: req.body.emailParent }).then(data => {
+  ParentUser.findOne({ emailParent: req.body.email }).then(data => {
     // if data null, create newParentUser
     if (data === null) {
-      const hash = bcrypt.hashSync(req.body.passwordParent, 10);
+      const hash = bcrypt.hashSync(req.body.password, 10);
     // req.body destructuration
       const {  
         photoParent,
@@ -82,13 +82,14 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/signin', (req, res) => {
-  if (!checkBody(req.body, ['emailParent', 'passwordParent'])) {
+
+  if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-
-  ParentUser.findOne({ emailParent: req.body.emailParent }).then(data => {
-    if (data && bcrypt.compareSync(req.body.passwordParent, data.passwordParent)) {
+  ParentUser.findOne({ emailParent: req.body.email }).then(data => {
+    console.log(data)
+    if (data && bcrypt.compareSync(req.body.password, data.passwordParent)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
