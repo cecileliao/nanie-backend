@@ -11,16 +11,16 @@ const bcrypt = require('bcrypt');
 
 router.post('/signup', (req, res) => {
   // console.log(req.body) pour verifier la route
-  if (!checkBody(req.body, ['emailAidant', 'passwordAidant'])) {
+  if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
 
   // Check if the user has not already been registered
-  AidantUser.findOne({ emailAidant: req.body.emailAidant }).then(data => {
+  AidantUser.findOne({ emailAidant: req.body.email }).then(data => {
     // if data null, create newAidantUser
     if (data === null) {
-      const hash = bcrypt.hashSync(req.body.passwordAidant, 10);
+      const hash = bcrypt.hashSync(req.body.password, 10);
     // req.body destructuration
       const {  
         photoAidant,
@@ -85,13 +85,13 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/signin', (req, res) => {
-  if (!checkBody(req.body, ['emailAidant', 'passwordAidant'])) {
+  if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
 
-  AidantUser.findOne({ emailAidant: req.body.emailAidant }).then(data => {
-    if (data && bcrypt.compareSync(req.body.passwordAidant, data.passwordAidant)) {
+  AidantUser.findOne({ emailAidant: req.body.email }).then(data => {
+    if (data && bcrypt.compareSync(req.body.password, data.passwordAidant)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
