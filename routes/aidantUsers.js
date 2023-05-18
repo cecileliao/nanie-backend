@@ -72,10 +72,11 @@ router.post('/signup', (req, res) => {
       newAidantUser.save().then(newDoc => {
         res.json({ result: true, token: newDoc.token });
       });
-    } else {
+    } 
+    //else {
       // User already exists in database
-      res.json({ result: false, error: 'User already exists' });
-    }
+    //   res.json({ result: false, error: 'User already exists' });
+    // }
   }).catch((err) => console.log(err))
 });
 
@@ -113,7 +114,7 @@ router.get('/Allusers', (req, res) => {
 
 router.get('/Infos/:token', (req, res) => {
 
-  AidantUser.find({ token: req.params.token }).then(data => {
+  AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data)
               res.json({ result: true, Aidantinfos: data });
             });
