@@ -109,6 +109,49 @@ router.post('/signin', (req, res) => {
 //   });
 // });
 
+//visualisation de tous les utilisateurs dans la bdd
+router.get('/Allusers', (req, res) => {
+  AidantUser.find().then(data => {
+    res.json({ allUsers: data });
+  });
+ });
+
+router.get('/Infos/:nameAidant', (req, res) => {
+
+  AidantUser.find({ nameAidant: req.params.nameAidant }).then(data => {
+    const userAidantbyMail = data.map(Helper => {
+      //La méthode map() dans la route permet de transformer les données renvoyées 
+      //par MongoDB en un tableau d'objets facilement manipulables et exploitables 
+      //par l'application front-end
+      
+                return {
+                  photoAidant: Helper.photoAidant,
+                  nameAidant: Helper.nameAidant,
+                  firstNameAidant: Helper.firstNameAidant,
+                  signupAidant: Helper.signupAidant,
+                  phoneAidant: Helper.phoneAidant,
+                  ageAidant: Helper.ageAidant,
+                  sexeAidant: Helper.sexeAidant,
+                  addressAidant: Helper.addressAidant,
+                  zipAidant: Helper.zipAidant,
+                  cityAidant: Helper.cityAidant, 
+                  car: Helper.car,
+                  introBioAidant: Helper.introBioAidant,
+                  longBioAidant: Helper.longBioAidant,
+                  abilitiesAidant: Helper.abilitiesAidant,
+                  ratebyHour: Helper.ratebyHour,
+                  averageNoteAidant: Helper.averageNoteAidant,
+                  mobility: Helper.mobility,
+                  hygiene: Helper.hygiene,
+                  cooking: Helper.cooking,
+                  entertainment: Helper.entertainment,
+                };
+              });
+              console.log(userAidantbyMail);
+              res.json({ result: true, infos: userAidantbyMail });
+            });
+        });
+
 
 
 module.exports = router;
