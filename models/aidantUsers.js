@@ -7,13 +7,20 @@ const availabilitySchema = mongoose.Schema({
   endingHour: Date
 });
 
+const talentsSchema = mongoose.Schema({
+    mobility: Boolean,
+    hygiene: Boolean,
+    cooking: Boolean,
+    entertainment: Boolean,
+  });
+
 const aidantUserSchema = mongoose.Schema({
   token: String,
   photoAidant: String,
   nameAidant: String,
   firstNameAidant: String,
-  emailAidant: String,
-  passwordAidant: String,
+  email: String,
+  password: String,
   signupAidant: Date,
   phoneAidant: String,
   ageAidant: Number,
@@ -28,10 +35,7 @@ const aidantUserSchema = mongoose.Schema({
   ratebyHour: Number,
   averageNote: Number,
   averageHeart: Number,
-  mobility: Boolean,
-  hygiene: Boolean,
-  cooking: Boolean,
-  entertainment: Boolean,
+  talents: talentsSchema,
   availabilities: [availabilitySchema],
   missions: [{ type: mongoose.Schema.Types.ObjectId, ref:'missions' }],
 });

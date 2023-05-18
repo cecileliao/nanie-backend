@@ -17,7 +17,7 @@ router.post('/signup', (req, res) => {
   }
 
   // Check if the user has not already been registered
-  AidantUser.findOne({ emailAidant: req.body.email }).then(data => {
+  AidantUser.findOne({ email: req.body.email }).then(data => {
     // if data null, create newAidantUser
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
@@ -26,7 +26,7 @@ router.post('/signup', (req, res) => {
         photoAidant,
         nameAidant,
         firstNameAidant,
-        emailAidant,
+        email,
         phoneAidant,
         ageAidant,
         sexeAidant,
@@ -44,8 +44,8 @@ router.post('/signup', (req, res) => {
         photoAidant,
         nameAidant,
         firstNameAidant,
-        emailAidant,
-        passwordAidant: hash,
+        email,
+        password: hash,
         // Date du jour format ?
         signupAidant: new Date(),
         phoneAidant,
@@ -61,16 +61,19 @@ router.post('/signup', (req, res) => {
         ratebyHour,
         // calcul de la moyenne pour la naote et les coeurs ?
         averageNoteAidant: null,
-        mobility: false,
-        hygiene: false,
-        cooking: false,
-        entertainment: false,
-        availabilities: [{
-          startingDay: null,
-          endingDay: null,
-          startingHour: null,
-          endingHour: null
-        }],
+        talents: {
+          mobility: false,
+          hygiene: false,
+          cooking: false,
+          entertainment: false,
+        },
+        // availabilities: [{
+        //   startingDay: null,
+        //   endingDay: null,
+        //   startingHour: null,
+        //   endingHour: null
+        // }],
+        availabilities: [],
         missions: [],
       });
 
@@ -90,8 +93,8 @@ router.post('/signin', (req, res) => {
     return;
   }
 
-  AidantUser.findOne({ emailAidant: req.body.email }).then(data => {
-    if (data && bcrypt.compareSync(req.body.password, data.passwordAidant)) {
+  AidantUser.findOne({ email: req.body.email }).then(data => {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
@@ -116,39 +119,11 @@ router.get('/Allusers', (req, res) => {
   });
  });
 
-router.get('/Infos/:nameAidant', (req, res) => {
+router.get('/Infos/:token', (req, res) => {
 
-  AidantUser.find({ nameAidant: req.params.nameAidant }).then(data => {
-    const userAidantbyMail = data.map(Helper => {
-      //La méthode map() dans la route permet de transformer les données renvoyées 
-      //par MongoDB en un tableau d'objets facilement manipulables et exploitables 
-      //par l'application front-end
-      
-                return {
-                  photoAidant: Helper.photoAidant,
-                  nameAidant: Helper.nameAidant,
-                  firstNameAidant: Helper.firstNameAidant,
-                  signupAidant: Helper.signupAidant,
-                  phoneAidant: Helper.phoneAidant,
-                  ageAidant: Helper.ageAidant,
-                  sexeAidant: Helper.sexeAidant,
-                  addressAidant: Helper.addressAidant,
-                  zipAidant: Helper.zipAidant,
-                  cityAidant: Helper.cityAidant, 
-                  car: Helper.car,
-                  introBioAidant: Helper.introBioAidant,
-                  longBioAidant: Helper.longBioAidant,
-                  abilitiesAidant: Helper.abilitiesAidant,
-                  ratebyHour: Helper.ratebyHour,
-                  averageNoteAidant: Helper.averageNoteAidant,
-                  mobility: Helper.mobility,
-                  hygiene: Helper.hygiene,
-                  cooking: Helper.cooking,
-                  entertainment: Helper.entertainment,
-                };
-              });
-              console.log(userAidantbyMail);
-              res.json({ result: true, infos: userAidantbyMail });
+  AidantUser.find({ token: req.params.token }).then(data => {
+    console.log(data)
+              res.json({ result: true, Aidantinfos: data });
             });
         });
 
