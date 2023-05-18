@@ -32,11 +32,14 @@ router.post('/signup', (req, res) => {
         sexeAidant,
         addressAidant,
         zipAidant,
-        cityAidant, 
+        cityAidant,
+        car, 
         introBioAidant,
         longBioAidant,
         abilitiesAidant,
         ratebyHour,
+        talents,
+        averageNoteAidant,
         } = req.body;
 
       const newAidantUser = new AidantUser({
@@ -54,25 +57,14 @@ router.post('/signup', (req, res) => {
         addressAidant,
         zipAidant,
         cityAidant, 
-        car: false,
+        car,
         introBioAidant,
         longBioAidant,
         abilitiesAidant,
         ratebyHour,
         // calcul de la moyenne pour la naote et les coeurs ?
-        averageNoteAidant: null,
-        talents: {
-          mobility: false,
-          hygiene: false,
-          cooking: false,
-          entertainment: false,
-        },
-        // availabilities: [{
-        //   startingDay: null,
-        //   endingDay: null,
-        //   startingHour: null,
-        //   endingHour: null
-        // }],
+        averageNoteAidant,
+        talents,
         availabilities: [],
         missions: [],
       });
@@ -84,7 +76,7 @@ router.post('/signup', (req, res) => {
       // User already exists in database
       res.json({ result: false, error: 'User already exists' });
     }
-  });
+  }).catch((err) => console.log(err))
 });
 
 router.post('/signin', (req, res) => {

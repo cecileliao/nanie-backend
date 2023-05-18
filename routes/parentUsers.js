@@ -17,7 +17,7 @@ router.post('/signup', (req, res) => {
   }
 
   // Check if the user has not already been registered
-  ParentUser.findOne({ emailParent: req.body.email }).then(data => {
+  ParentUser.findOne({ email: req.body.email }).then(data => {
     // if data null, create newParentUser
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
@@ -26,34 +26,9 @@ router.post('/signup', (req, res) => {
         photoParent,
         nameParent,
         firstNameParent,
-        emailParent,
+        email,
         phoneParent,
         shortBioParent,
-        nameAine,
-        firstNameAine,
-        ageAine,
-        sexeAine,
-        addressAine, 
-        zipAine,
-        cityAine,
-        introAine,
-        longBioAine,
-        gemProfil, 
-        } = req.body;
-
-      const newParentUser = new ParentUser({
-        token: uid2(32),
-        photoParent,
-        nameParent,
-        firstNameParent,
-        emailParent,
-        passwordParent: hash,
-        phoneParent,
-        shortBioParent,
-        // Date du jour format
-        signupParent: new Date(),
-        // calcul de la moyenne pour la naote et les coeurs ?
-        averageNoteParent: null,
         nameAine,
         firstNameAine,
         ageAine,
@@ -64,10 +39,34 @@ router.post('/signup', (req, res) => {
         introAine,
         longBioAine,
         gemProfil,
-        mobility: false,
-        hygiene: false,
-        cooking: false,
-        entertainment: false,
+        talents,
+        averageNoteParent, 
+        } = req.body;
+
+      const newParentUser = new ParentUser({
+        token: uid2(32),
+        photoParent,
+        nameParent,
+        firstNameParent,
+        email,
+        password: hash,
+        phoneParent,
+        shortBioParent,
+        // Date du jour format
+        signupParent: new Date(),
+        // calcul de la moyenne pour la naote et les coeurs ?
+        averageNoteParent,
+        nameAine,
+        firstNameAine,
+        ageAine,
+        sexeAine,
+        addressAine, 
+        zipAine,
+        cityAine,
+        introAine,
+        longBioAine,
+        gemProfil,
+        talents,
         missions: [],
       });
 
@@ -89,7 +88,7 @@ router.post('/signin', (req, res) => {
   }
   ParentUser.findOne({ emailParent: req.body.email }).then(data => {
     console.log(data)
-    if (data && bcrypt.compareSync(req.body.password, data.passwordParent)) {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
