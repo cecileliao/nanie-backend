@@ -14,11 +14,11 @@ const talentsSchema = mongoose.Schema({
     entertainment: Boolean,
   });
 
-  const aidantSchema = mongoose.Schema({
-    car: Boolean,
-    abilities: String,
-    rate: Number,
-  });
+const aidantSchema = mongoose.Schema({
+  car: Boolean,
+  abilities: String,
+  rate: Number,
+});
 
 const aidantUserSchema = mongoose.Schema({
   token: String,

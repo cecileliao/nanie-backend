@@ -37,7 +37,7 @@ router.post('/signup', (req, res) => {
         longBio,
         aidant,
         talents,
-        averageNoteAidant,
+        averageNote,
         isParent,
         } = req.body;
 
@@ -59,8 +59,8 @@ router.post('/signup', (req, res) => {
         introBio,
         longBio,
         isParent,
-        // calcul de la moyenne pour la naote et les coeurs ?
-        averageNoteAidant,
+        // calcul de la moyenne pour la note et les coeurs ?
+        averageNote,
         aidant,
         talents,
         availabilities: [],

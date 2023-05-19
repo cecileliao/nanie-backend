@@ -1,33 +1,37 @@
 const mongoose = require('mongoose');
 
 const talentsSchema = mongoose.Schema({
-    mobility: Boolean,
-    hygiene: Boolean,
-    cooking: Boolean,
-    entertainment: Boolean,
-  });
+  mobility: Boolean,
+  hygiene: Boolean,
+  cooking: Boolean,
+  entertainment: Boolean,
+});
+
+const parentSchema = mongoose.Schema({
+nameParent: String,
+firstNameParent: String,
+gemProfil: String,
+});
 
 const parentUserSchema = mongoose.Schema({
     token: String,
-    photoParent: String,
-    nameParent: String,
-    firstNameParent: String,
+    photo: String,
     email: String,
     password: String,
-    phoneParent: String,
-    shortBioParent: String,
-    signupParent: Date,
-    averageNoteParent: Number,
-    nameAine: String,
-    firstNameAine: String,
-    ageAine: Number,
-    sexeAine: String,
-    addressAine: String, 
-    zipAine: String,
-    cityAine: String,
-    introAine: String,
-    longBioAine: String,
-    gemProfil: String,
+    phone: String,
+    shortBio: String,
+    signup: Date,
+    averageNote: Number,
+    name: String,
+    firstName: String,
+    age: Number,
+    sexe: String,
+    address: String, 
+    zip: String,
+    city: String,
+    intro: String,
+    longBio: String,
+    parent: parentSchema,
     talents: talentsSchema,
     missions: [{ type: mongoose.Schema.Types.ObjectId, ref:'missions' }],
 });
