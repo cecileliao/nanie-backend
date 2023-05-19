@@ -5,17 +5,20 @@ require('../models/connection');
 
 const AidantUser = require('../models/aidantUsers');
 
+//check les champs vides
 const { checkBody } = require('../modules/checkBody');
+//crypt le mot de passe
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
 
+
+// Route SignUp
 router.post('/signup', (req, res) => {
   // console.log(req.body) pour verifier la route
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-
   // Check if the user has not already been registered
   AidantUser.findOne({ email: req.body.email }).then(data => {
     // if data null, create newAidantUser
@@ -48,8 +51,7 @@ router.post('/signup', (req, res) => {
         firstName,
         email,
         password: hash,
-        // Date du jour format ?
-        signup: new Date(),
+        signup: new Date(),        // Date du jour format ?
         phone,
         age,
         sexe,
@@ -59,8 +61,7 @@ router.post('/signup', (req, res) => {
         introBio,
         longBio,
         isParent,
-        // calcul de la moyenne pour la note et les coeurs ?
-        averageNote,
+        averageNote,        // calcul de la moyenne pour la note et les coeurs ?
         aidant,
         talents,
         availabilities: [],
@@ -71,19 +72,18 @@ router.post('/signup', (req, res) => {
         res.json({ result: true, token: newDoc.token });
       });
     } 
-    //else {
-      // User already exists in database
-    //   res.json({ result: false, error: 'User already exists' });
-    // }
+    else {
+      res.json({ result: false, error: 'User already exists' });       // User already exists in database
+    }
   }).catch((err) => console.log(err))
 });
 
+//Route SignIn
 router.post('/signin', (req, res) => {
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-
   AidantUser.findOne({ email: req.body.email }).then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
@@ -93,33 +93,24 @@ router.post('/signin', (req, res) => {
   });
 });
 
-// router.get('/canBookmark/:token', (req, res) => {
-//   User.findOne({ token: req.params.token }).then(data => {
-//     if (data) {
-//       res.json({ result: true, canBookmark: data.canBookmark });
-//     } else {
-//       res.json({ result: false, error: 'User not found' });
-//     }
-//   });
-// });
 
-//visualisation de tous les utilisateurs dans la bdd
+//Route pour la visualisation de tous les utilisateurs dans la bdd
 router.get('/Allusers', (req, res) => {
   AidantUser.find().then(data => {
     res.json({ allUsers: data });
   });
  });
 
+ //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
 router.get('/Infos/:token', (req, res) => {
-
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data)
-              res.json({ result: true, Aidantinfos: data });
-            });
-        });
+    res.json({ result: true, Aidantinfos: data });
+  });
+});
 
+//Route pour les messages?
 router.get('/Messages/:token', (req, res) => {
-
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data);
 
@@ -132,7 +123,15 @@ router.get('/Messages/:token', (req, res) => {
   })
 });
 
-
+// router.get('/canBookmark/:token', (req, res) => {
+//   User.findOne({ token: req.params.token }).then(data => {
+//     if (data) {
+//       res.json({ result: true, canBookmark: data.canBookmark });
+//     } else {
+//       res.json({ result: false, error: 'User not found' });
+//     }
+//   });
+// });
 
 
 module.exports = router;

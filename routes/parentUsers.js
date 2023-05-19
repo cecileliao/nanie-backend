@@ -5,17 +5,20 @@ require('../models/connection');
 
 const ParentUser = require('../models/parentUsers');
 
+//check les champs vides
 const { checkBody } = require('../modules/checkBody');
+//crypt le mot de passe
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
 
-router.post('/signup', (req, res) => {
 
+// Route SignUp
+router.post('/signup', (req, res) => {
+  // console.log(req.body) pour verifier la route
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-
   // Check if the user has not already been registered
   ParentUser.findOne({ email: req.body.email }).then(data => {
     // if data null, create newParentUser
@@ -53,10 +56,8 @@ router.post('/signup', (req, res) => {
         password: hash,
         phone,
         shortBio,
-        // Date du jour format
-        signup: new Date(),
-        // calcul de la moyenne pour la note et les coeurs ?
-        averageNote,
+        signup: new Date(),         // Date du jour format
+        averageNote,        // calcul de la moyenne pour la note et les coeurs ?
         name,
         firstName,
         age,
@@ -82,19 +83,41 @@ router.post('/signup', (req, res) => {
   });
 });
 
-router.post('/signin', (req, res) => {
 
+//Route SignIn
+router.post('/signin', (req, res) => {
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-  ParentUser.findOne({ emailParent: req.body.email }).then(data => {
-    console.log(data)
+  ParentUser.findOne({ email: req.body.email }).then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
     }
+  });
+});
+
+//visualisation de tous les utilisateurs dans la bdd
+router.get('/Allusers', (req, res) => {
+  AidantUser.find().then(data => {
+    res.json({ allUsers: data });
+  });
+ });
+
+//Route pour la visualisation de tous les utilisateurs dans la bdd
+router.get('/Allusers', (req, res) => {
+  ParentUser.find().then(data => {
+    res.json({ allUsers: data });
+  });
+ });
+
+ //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
+router.get('/Infos/:token', (req, res) => {
+  ParentUser.findOne({ token: req.params.token }).then(data => {
+    console.log(data)
+    res.json({ result: true, Parentinfos: data });
   });
 });
 
