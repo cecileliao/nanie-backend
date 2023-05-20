@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const { DateTime } = require('luxon');
 
 require('../models/connection');
 
@@ -94,6 +95,55 @@ router.post('/signin', (req, res) => {
 });
 
 
+
+//Route pour la visualiser les dispo d'un utilisateur selon son token
+router.get('/dispos/:token', (req, res) => {
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+    console.log(data.availabilities)
+    res.json({ result: true, UserDispos: data.availabilities });
+  });
+ });
+
+ //////route post ajout dispos d'un utilisateur
+ router.post('/addDispo/:token', (req, res) => {
+  
+      // req.body destructuration
+      const { 
+        startingDay,
+        endingDay,
+        startingHour,
+        endingHour,
+      } = req.body;
+
+
+      const formattedStartingDay = DateTime.fromFormat(startingDay, 'dd-MM-yyyy', { locale: 'fr' }).setZone('Europe/Paris').toJSDate();
+      const formattedEndingDay = DateTime.fromFormat(endingDay, 'dd-MM-yyyy', { locale: 'fr' }).setZone('Europe/Paris').toJSDate();
+      const formattedStartingHour = DateTime.fromFormat(startingHour, 'HH:mm', { zone: 'utc' }).toJSDate();
+      const formattedEndingHour = DateTime.fromFormat(endingHour, 'HH:mm', { zone: 'utc' }).toJSDate();
+    
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+  
+
+
+      const newAvailability = {
+        startingDay: formattedStartingDay,
+        endingDay: formattedEndingDay,
+        startingHour: formattedStartingHour,
+        endingHour: formattedEndingHour,
+      };
+      console.log(newAvailability)
+      data.availabilities.push(newAvailability);
+
+      data.save().then(savedAvaibility => {
+        console.log(savedAvaibility)
+        res.json({ result: true, UserDispos: savedAvaibility.availabilities });
+      });
+  }).catch((err) => console.log(err))
+});
+
+
+
+
 //Route pour la visualisation de tous les utilisateurs dans la bdd
 router.get('/Allusers', (req, res) => {
   AidantUser.find().then(data => {
@@ -101,7 +151,8 @@ router.get('/Allusers', (req, res) => {
   });
  });
 
- //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
+//Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
+//pour afficher le profil utilisateur
 router.get('/Infos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data)
@@ -123,15 +174,7 @@ router.get('/Messages/:token', (req, res) => {
   })
 });
 
-// router.get('/canBookmark/:token', (req, res) => {
-//   User.findOne({ token: req.params.token }).then(data => {
-//     if (data) {
-//       res.json({ result: true, canBookmark: data.canBookmark });
-//     } else {
-//       res.json({ result: false, error: 'User not found' });
-//     }
-//   });
-// });
+
 
 
 module.exports = router;
