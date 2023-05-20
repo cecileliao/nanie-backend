@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const { DateTime } = require('luxon');
+var moment = require('moment');
+
 
 require('../models/connection');
 
@@ -104,33 +105,35 @@ router.get('/dispos/:token', (req, res) => {
   });
  });
 
+
+
  //////route post ajout dispos d'un utilisateur
  router.post('/addDispo/:token', (req, res) => {
-  
-      // req.body destructuration
-      const { 
-        startingDay,
-        endingDay,
-        startingHour,
-        endingHour,
-      } = req.body;
 
-
-      const formattedStartingDay = DateTime.fromFormat(startingDay, 'dd-MM-yyyy', { locale: 'fr' }).setZone('Europe/Paris').toJSDate();
-      const formattedEndingDay = DateTime.fromFormat(endingDay, 'dd-MM-yyyy', { locale: 'fr' }).setZone('Europe/Paris').toJSDate();
-      const formattedStartingHour = DateTime.fromFormat(startingHour, 'HH:mm', { zone: 'utc' }).toJSDate();
-      const formattedEndingHour = DateTime.fromFormat(endingHour, 'HH:mm', { zone: 'utc' }).toJSDate();
-    
+     
   AidantUser.findOne({ token: req.params.token }).then(data => {
+
+        // req.body destructuration
+        const { 
+          startingDay,
+          endingDay,
+          startingHour,
+          endingHour,
+        } = req.body;
   
 
+      // Ajouter 2 heures aux heures de début et de fin
+      const adjustedStartingHour = moment(startingHour).add(2, 'hours');
+      const adjustedEndingHour = moment(endingHour).add(2, 'hours');
 
       const newAvailability = {
-        startingDay: formattedStartingDay,
-        endingDay: formattedEndingDay,
-        startingHour: formattedStartingHour,
-        endingHour: formattedEndingHour,
+        startingDay,
+        endingDay,
+        startingHour: adjustedStartingHour,
+        endingHour: adjustedEndingHour,
       };
+
+
       console.log(newAvailability)
       data.availabilities.push(newAvailability);
 
