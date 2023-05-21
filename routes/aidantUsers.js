@@ -97,7 +97,7 @@ router.post('/signin', (req, res) => {
 
 
 
-//Route pour la visualiser les dispo d'un utilisateur selon son token
+///////Route pour visualiser les dispos d'un utilisateur selon son token
 router.get('/dispos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data.availabilities)
@@ -107,7 +107,7 @@ router.get('/dispos/:token', (req, res) => {
 
 
 
- //////route post ajout dispos d'un utilisateur
+ //////////route post ajout un dispo d'un utilisateur
  router.post('/addDispo/:token', (req, res) => {
 
      
@@ -144,10 +144,38 @@ router.get('/dispos/:token', (req, res) => {
   }).catch((err) => console.log(err))
 });
 
+//route pour supprimer une disponibilité
+router.delete('/deleteDispo/:token/:availabilityId', (req, res) => {
+
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+    const availabilityId = req.params.availabilityId;
+
+      // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
+      //méthode Array.findIndex() pour rechercher l'index de la disponibilité dans le tableau 'data.availabilities'
+      //parcourt chaque élément du tableau et exécuter la fonction pour vérifier si l'id de la dispo existe
+      const availabilityIndex = data.availabilities.findIndex(availability => availability._id == availabilityId);
+      //si trouve l'id va retourner l'index dans la constante availabilityIndex
+        if (availabilityIndex === -1) {
+          //si ne trouve pas l'id retourne -1
+          return res.status(404).json({ error: "La disponibilité n'a pas été trouvée." });
+        }
+        
+        // Supprimer la disponibilité du tableau des disponibilités
+        //méthoe Array.splice pour supprimer du tableau data.availabilities
+        //2 arguments: index de départ et nombre d'éléments à supprimer
+        data.availabilities.splice(availabilityIndex, 1);
+    
+        // Enregistrer les modifications
+        data.save().then(savedAvailability => {
+          res.json({ result: true, UserDispos: savedAvailability.availabilities });
+        });
+  })
+});
 
 
 
-//Route pour la visualisation de tous les utilisateurs dans la bdd
+
+/////Route pour la visualisation de tous les utilisateurs dans la bdd
 router.get('/Allusers', (req, res) => {
   AidantUser.find().then(data => {
     res.json({ allUsers: data });
