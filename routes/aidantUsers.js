@@ -12,6 +12,7 @@ const { checkBody } = require('../modules/checkBody');
 //crypt le mot de passe
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
+const { token } = require('morgan');
 
 
 // Route SignUp
@@ -100,7 +101,7 @@ router.post('/signin', (req, res) => {
 ///////Route pour visualiser les dispos d'un utilisateur selon son token
 router.get('/dispos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
-    console.log(data.availabilities)
+    //console.log(data.availabilities)
     res.json({ result: true, UserDispos: data.availabilities });
   });
  });
@@ -134,7 +135,7 @@ router.get('/dispos/:token', (req, res) => {
       };
 
 
-      console.log(newAvailability)
+      //console.log(newAvailability)
       data.availabilities.push(newAvailability);
 
       data.save().then(savedAvaibility => {
@@ -148,6 +149,9 @@ router.get('/dispos/:token', (req, res) => {
 router.delete('/deleteDispo/:token/:availabilityId', (req, res) => {
 
   AidantUser.findOne({ token: req.params.token }).then(data => {
+    console.log(data.availabilities)
+    console.log(req.params.token)
+
     const availabilityId = req.params.availabilityId;
 
       // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
