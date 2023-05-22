@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var moment = require('moment');
+
 
 require('../models/connection');
 
@@ -10,6 +12,7 @@ const { checkBody } = require('../modules/checkBody');
 //crypt le mot de passe
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
+const { token } = require('morgan');
 
 
 // Route SignUp
@@ -94,14 +97,97 @@ router.post('/signin', (req, res) => {
 });
 
 
-//Route pour la visualisation de tous les utilisateurs dans la bdd
+
+///////Route pour visualiser les dispos d'un utilisateur selon son token
+router.get('/dispos/:token', (req, res) => {
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+    //console.log(data.availabilities)
+    res.json({ result: true, UserDispos: data.availabilities });
+  });
+ });
+
+
+
+ //////////route post ajout un dispo d'un utilisateur
+ router.post('/addDispo/:token', (req, res) => {
+
+     
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+
+        // req.body destructuration
+        const { 
+          startingDay,
+          endingDay,
+          startingHour,
+          endingHour,
+        } = req.body;
+  
+
+      // Ajouter 2 heures aux heures de début et de fin
+      const adjustedStartingHour = moment(startingHour).add(2, 'hours');
+      const adjustedEndingHour = moment(endingHour).add(2, 'hours');
+
+      const newAvailability = {
+        startingDay,
+        endingDay,
+        startingHour: adjustedStartingHour,
+        endingHour: adjustedEndingHour,
+      };
+
+
+      //console.log(newAvailability)
+      data.availabilities.push(newAvailability);
+
+      data.save().then(savedAvaibility => {
+        console.log(savedAvaibility)
+        res.json({ result: true, UserDispos: savedAvaibility.availabilities });
+      });
+  }).catch((err) => console.log(err))
+});
+
+//route pour supprimer une disponibilité
+router.delete('/deleteDispo/:token/:availabilityId', (req, res) => {
+
+  AidantUser.findOne({ token: req.params.token }).then(data => {
+    console.log(data.availabilities)
+    console.log(req.params.token)
+
+    const availabilityId = req.params.availabilityId;
+
+      // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
+      //méthode Array.findIndex() pour rechercher l'index de la disponibilité dans le tableau 'data.availabilities'
+      //parcourt chaque élément du tableau et exécuter la fonction pour vérifier si l'id de la dispo existe
+      const availabilityIndex = data.availabilities.findIndex(availability => availability._id == availabilityId);
+      //si trouve l'id va retourner l'index dans la constante availabilityIndex
+        if (availabilityIndex === -1) {
+          //si ne trouve pas l'id retourne -1
+          return res.status(404).json({ error: "La disponibilité n'a pas été trouvée." });
+        }
+        
+        // Supprimer la disponibilité du tableau des disponibilités
+        //méthoe Array.splice pour supprimer du tableau data.availabilities
+        //2 arguments: index de départ et nombre d'éléments à supprimer
+        data.availabilities.splice(availabilityIndex, 1);
+    
+        // Enregistrer les modifications
+        data.save().then(savedAvailability => {
+          res.json({ result: true, UserDispos: savedAvailability.availabilities });
+        });
+  })
+});
+
+
+
+
+/////Route pour la visualisation de tous les utilisateurs dans la bdd
 router.get('/Allusers', (req, res) => {
   AidantUser.find().then(data => {
     res.json({ allUsers: data });
   });
  });
 
- //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
+//Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
+//pour afficher le profil utilisateur
 router.get('/Infos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data)
@@ -123,15 +209,7 @@ router.get('/messages/:token', (req, res) => {
   })
 });
 
-// router.get('/canBookmark/:token', (req, res) => {
-//   User.findOne({ token: req.params.token }).then(data => {
-//     if (data) {
-//       res.json({ result: true, canBookmark: data.canBookmark });
-//     } else {
-//       res.json({ result: false, error: 'User not found' });
-//     }
-//   });
-// });
+
 
 
 module.exports = router;
