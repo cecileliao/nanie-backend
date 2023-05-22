@@ -139,8 +139,8 @@ router.get('/dispos/:token', (req, res) => {
       data.availabilities.push(newAvailability);
 
       data.save().then(savedAvaibility => {
-        console.log(savedAvaibility)
-        res.json({ result: true, UserDispos: savedAvaibility.availabilities });
+        console.log(newAvailability)
+        res.json({ result: true, UserDispos: savedAvaibility.availabilities, NewAvailability: newAvailability });
       });
   }).catch((err) => console.log(err))
 });
