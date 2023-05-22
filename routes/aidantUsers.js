@@ -140,19 +140,18 @@ router.get('/dispos/:token', (req, res) => {
 
       data.save().then(savedAvaibility => {
         console.log(newAvailability)
-        res.json({ result: true, UserDispos: savedAvaibility.availabilities, NewAvailability: newAvailability });
+        res.json({ result: true, UserDispos: savedAvaibility.availabilities, newAvailability: newAvailability });
       });
   }).catch((err) => console.log(err))
 });
 
 //route pour supprimer une disponibilité
-router.delete('/deleteDispo/:token/:availabilityId', (req, res) => {
+router.delete('/deleteDispo', (req, res) => {
 
-  AidantUser.findOne({ token: req.params.token }).then(data => {
+  AidantUser.findOne({ token: req.body.token }).then(data => {
     console.log(data.availabilities)
-    console.log(req.params.token)
 
-    const availabilityId = req.params.availabilityId;
+    const availabilityId = req.body.availabilityId;
 
       // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
       //méthode Array.findIndex() pour rechercher l'index de la disponibilité dans le tableau 'data.availabilities'
