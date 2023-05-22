@@ -10,6 +10,7 @@ const talentsSchema = mongoose.Schema({
 const parentSchema = mongoose.Schema({
 nameParent: String,
 firstNameParent: String,
+shortBio: String,
 gemProfil: String,
 });
 
@@ -19,7 +20,6 @@ const parentUserSchema = mongoose.Schema({
     email: String,
     password: String,
     phone: String,
-    shortBio: String,
     signup: Date,
     averageNote: Number,
     name: String,
@@ -29,7 +29,7 @@ const parentUserSchema = mongoose.Schema({
     address: String, 
     zip: String,
     city: String,
-    intro: String,
+    introBio: String,
     longBio: String,
     parent: parentSchema,
     talents: talentsSchema,

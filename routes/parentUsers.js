@@ -31,7 +31,7 @@ router.post('/signup', (req, res) => {
         // firstNameParent,
         email,
         phone,
-        shortBio,
+        // shortBio,
         name,
         firstName,
         age,
@@ -55,7 +55,7 @@ router.post('/signup', (req, res) => {
         email,
         password: hash,
         phone,
-        shortBio,
+        // shortBio,
         signup: new Date(),         // Date du jour format
         averageNote,        // calcul de la moyenne pour la note et les coeurs ?
         name,
