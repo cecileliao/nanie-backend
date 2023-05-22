@@ -110,7 +110,7 @@ router.get('/Infos/:token', (req, res) => {
 });
 
 //Route pour les messages?
-router.get('/Messages/:token', (req, res) => {
+router.get('/messages/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
     console.log(data);
 
