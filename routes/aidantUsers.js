@@ -110,7 +110,7 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
     .then(data => {
       console.log('data', data)
       if (data[0].availabilities.length > 0) {
-        res.json({ result: true, dispos: data[0] });
+        res.json({ result: true, dispos: data });
       } else {
         res.json({ result: false, error: 'No dispo found' });
       }
