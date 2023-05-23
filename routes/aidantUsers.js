@@ -146,15 +146,11 @@ router.get('/dispos/:token', (req, res) => {
         } = req.body;
   
 
-      // Ajouter 2 heures aux heures de début et de fin
-      const adjustedStartingHour = moment(startingHour).add(2, 'hours');
-      const adjustedEndingHour = moment(endingHour).add(2, 'hours');
-
       const newAvailability = {
         startingDay,
         endingDay,
-        startingHour: adjustedStartingHour,
-        endingHour: adjustedEndingHour,
+        startingHour,
+        endingHour,
       };
 
 
