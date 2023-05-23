@@ -96,6 +96,13 @@ router.post('/signin', (req, res) => {
   });
 });
 
+///////Route pour visualiser les dispos de tous les utilisateurs
+router.get('/dispos', (req, res) => {
+  AidantUser.find().then(data => {
+    console.log('Vive les patates', data[0])
+    res.json({ result: true, UserInfos: data });
+  });
+ });
 
 
 ///////Route pour visualiser les dispos d'un utilisateur selon son token
