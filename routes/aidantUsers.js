@@ -97,13 +97,29 @@ router.post('/signin', (req, res) => {
 });
 
 ///////Route pour visualiser les dispos de tous les utilisateurs
-router.get('/dispos', (req, res) => {
-  AidantUser.find().then(data => {
-    console.log('Vive les patates', data[0])
-    res.json({ result: true, UserInfos: data });
-  });
- });
+router.get('/search/:startingDay/:endingDay', (req, res) => {
 
+  const { startingDay, endingDay } = req.params;
+
+  console.log('starting', startingDay, endingDay)
+
+  AidantUser.find({
+    'availabilities.startingDay': { $gte: startingDay },
+    'availabilities.endingDay': { $lte: endingDay },
+  })
+    .then(data => {
+      console.log('data', data)
+      if (data[0].availabilities.length > 0) {
+        res.json({ result: true, dispos: data[0] });
+      } else {
+        res.json({ result: false, error: 'No dispo found' });
+      }
+    })
+    .catch(error => {
+      res.json({ result: false, error: error.message });
+    });
+ });
+ 
 
 ///////Route pour visualiser les dispos d'un utilisateur selon son token
 router.get('/dispos/:token', (req, res) => {
