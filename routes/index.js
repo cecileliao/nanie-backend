@@ -60,6 +60,7 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
       idAidant: aidantUser._id,
       idParent: parentUser._id,
       rateByHour: aidantUser.aidant.rate,
+      numberOfHour: differenceInHours,
       amount: amount,
       validate:false,
       messages: [],

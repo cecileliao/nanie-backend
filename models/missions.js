@@ -21,6 +21,7 @@ const missionSchema = mongoose.Schema({
     idAidant: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
     idParent: { type: mongoose.Schema.Types.ObjectId, ref:'parentUsers' },
     rateByHour: Number,
+    numberOfHour: Number,
     amount: Number,
     validate: Boolean,
     messages: [messageSchema],
