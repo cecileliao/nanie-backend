@@ -85,6 +85,19 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
 });
 //mission crée Emma Lorain et Léa Colin (parent)
 
+
+//route pour afficher les détails de la mission par rapport à l'id de la mission
+router.get('/DetailsMission/:_id', (req, res) => {
+  Mission.findOne({ _id: req.params._id}).populate('idAidant idParent')
+  .then(data => {
+    console.log(data)
+    res.json({ result: true, Aidantinfos: data });
+  });
+});
+
+
+
+
 // router.post('/upload/:token', async (req, res) => {
 //   const parent = ParentUser.findOne({token: req.params.token})
 //   const aidant = AidantUser.findOne({token: req.params.token})
