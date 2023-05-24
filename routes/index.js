@@ -78,7 +78,7 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
 
 
 
-    res.status(201).json({ result: true, savedMission: savedMission });
+    res.status(201).json({ result: true, _id: savedMission._id, savedMission: savedMission });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
