@@ -22,9 +22,9 @@ const missionSchema = mongoose.Schema({
     // spotter seulement les éléments utiles
     idAidant: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
     idParent: { type: mongoose.Schema.Types.ObjectId, ref:'parentUsers' },
-    ratebyHour: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
+    rateByHour: Number,
     amount: Number,
-    validateur: Boolean,
+    validate: Boolean,
     messages: [messageSchema],
     recommendations: [recommandationSchema],
 });
