@@ -6,6 +6,7 @@ const uniqid = require('uniqid');
 const fs = require('fs');
 const AidantUser = require("../models/aidantUsers")
 const ParentUser = require("../models/parentUsers")
+const Mission = require("../models/missions")
 
 router.post('/upload', async (req, res) => {
   const photoPath = `./tmp/${uniqid()}.jpg`;
@@ -21,6 +22,68 @@ router.post('/upload', async (req, res) => {
 
   
 });
+
+//route pour créer une mission
+router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
+  try {
+    const parentToken = req.params.parentToken;
+    const aidantToken = req.params.aidantToken;
+
+    const parentUser = await ParentUser.findOne({ token: parentToken });
+    const aidantUser = await AidantUser.findOne({ token: aidantToken });
+    //console.log("parentUser", parentUser)
+    console.log("aidantUserRate", aidantUser.aidant.rate)
+    // Vérification si les utilisateurs existent
+    if (!parentUser || !aidantUser) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+
+    const { startingDay, endingDay, startingHour, endingHour } = req.body;
+
+    //calcul du nombre d'heures entre la date de fin et la date de début de mission
+    //besoin de configurer sous format date
+    const NewstartingDay = new Date(startingDay);
+    const NewendingDay = new Date(endingDay);
+    const differenceInMilliseconds = NewendingDay - NewstartingDay;
+    const differenceInHours = differenceInMilliseconds / (1000 * 60 * 60); // Convertir les millisecondes en heures
+    
+    //calcul du montant total de la mission
+    const amount = aidantUser.aidant.rate * differenceInHours
+    //console.log(amount)
+
+    const mission = new Mission({
+      startingDay,
+      endingDay,
+      startingHour,
+      endingHour,
+      idAidant: aidantUser._id,
+      idParent: parentUser._id,
+      rateByHour: aidantUser.aidant.rate,
+      amount: amount,
+      validate:false,
+      messages: [],
+      recommendations: []
+    });
+
+    const savedMission = await mission.save();
+    
+    //ajout de l'id de la mission dans l'aidant et le parent associés 
+    aidantUser.missions.push(savedMission);
+    parentUser.missions.push(savedMission);
+    //console.log(aidantUser.missions)
+
+    await aidantUser.save(); // Enregistrer les modifications dans la collection aidantUsers de MongoDB
+    await parentUser.save(); // Enregistrer les modifications dans la collection parentUsers de MongoDB
+
+
+
+    res.status(201).json({ result: true, savedMission: savedMission });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+//mission crée Emma Lorain et Léa Colin (parent)
 
 // router.post('/upload/:token', async (req, res) => {
 //   const parent = ParentUser.findOne({token: req.params.token})
