@@ -213,21 +213,19 @@ router.get('/Infos/:token', (req, res) => {
   });
 });
 
-//Route pour les messages?
-router.get('/messages/:token', (req, res) => {
-  AidantUser.findOne({ token: req.params.token }).then(data => {
-    console.log(data);
+// //Route pour les messages?
+// router.get('/messages/:token', (req, res) => {
+//   AidantUser.findOne({ token: req.params.token }).then(data => {
+//     console.log(data);
 
-    Mission.find({ idAidant: data._id })
-      .populate('messages') // Charger les messages de la mission
-      .then(missions => {
-        console.log(missions);
-        res.json({ result: true, Aidantinfos: data, messages: messages });
-      })
-  })
-});
-
-
+//     Mission.find({ idAidant: data._id })
+//       .populate('messages') // Charger les messages de la mission
+//       .then(missions => {
+//         console.log(missions);
+//         res.json({ result: true, Aidantinfos: data, messages: messages });
+//       })
+//   })
+// });
 
 
 module.exports = router;

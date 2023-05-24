@@ -9,7 +9,8 @@ require('./models/connection');
 
 var indexRouter = require('./routes/index');
 var aidantUsersRouter = require('./routes/aidantUsers');
-var parentUsersRouter = require('./routes/parentUsers')
+var parentUsersRouter = require('./routes/parentUsers');
+var messagesRouter = require('./routes/messages');
 
 var app = express();
 
@@ -28,5 +29,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/aidantUsers', aidantUsersRouter);
 app.use('/parentUsers', parentUsersRouter);
+app.use('/messages', messagesRouter);
 
 module.exports = app;

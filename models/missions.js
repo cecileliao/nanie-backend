@@ -4,6 +4,8 @@ const messageSchema = mongoose.Schema({
 	dateMsg: Date,
     // (24/02/2023 14:00)
     contentMsg: String,
+    idAidant: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
+    idParent: { type: mongoose.Schema.Types.ObjectId, ref:'parentUsers' },
 });
 
 const recommandationSchema = mongoose.Schema({
