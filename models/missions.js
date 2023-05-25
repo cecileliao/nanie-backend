@@ -23,7 +23,7 @@ const missionSchema = mongoose.Schema({
     rateByHour: Number,
     numberOfHour: Number,
     amount: Number,
-    validate: Boolean,
+    isValidate: Boolean,
     messages: [messageSchema],
     recommendations: [recommandationSchema],
 });
