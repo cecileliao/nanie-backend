@@ -76,7 +76,7 @@ router.post('/addMessage/:idMission', async (req, res) => {
           name: author.name,
           firstName: author.firstName,
           content: contentMsg,
-          dateMsg: date.toLocaleString(),
+          dateMsg: dateMsg.toLocaleString(),
         };
       });
   
@@ -102,21 +102,22 @@ router.post('/addMessage/:idMission', async (req, res) => {
   
       const user = parent || aidant;
       const userId = user._id;
-  
+      console.log(messages)
       const missions = await Mission.find({
         $or: [{ idParent: userId }, { idAidant: userId }],
       })
         .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
         .limit(1)
         .populate({
-          path: 'messages.idParent messages.idAidant',
+          path: 'mission.idParent mission.idAidant',
           select: 'name firstName photo',
         });
   
       const lastMessages = missions.map((mission) => {
         const message = mission.messages[mission.messages.length - 1];
-  
+
         if (!message) {
+          console.log('pas de message')
           return null;
         }
   
@@ -129,7 +130,7 @@ router.post('/addMessage/:idMission', async (req, res) => {
           name: author.name,
           firstName: author.firstName,
           content: contentMsg,
-          dateMsg: date.toLocaleString(),
+          dateMsg: message.date.toLocaleString(),
         };
       });
   
