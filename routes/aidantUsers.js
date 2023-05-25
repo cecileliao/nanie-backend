@@ -101,14 +101,14 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
 
   const { startingDay, endingDay } = req.params;
 
-  console.log('starting', startingDay, endingDay)
+  // console.log('starting', startingDay, endingDay)
 
   AidantUser.find({
     'availabilities.startingDay': { $gte: startingDay },
     'availabilities.endingDay': { $lte: endingDay },
   })
     .then(data => {
-      console.log('data', data)
+      // console.log('data', data)
       if (data[0].availabilities.length > 0) {
         res.json({ result: true, dispos: data });
       } else {
@@ -153,12 +153,11 @@ router.get('/dispos/:token', (req, res) => {
         endingHour,
       };
 
-
       //console.log(newAvailability)
       data.availabilities.push(newAvailability);
 
       data.save().then(savedAvaibility => {
-        console.log(newAvailability)
+        // console.log(newAvailability)
         res.json({ result: true, UserDispos: savedAvaibility.availabilities, newAvailability: newAvailability });
       });
   }).catch((err) => console.log(err))
@@ -168,7 +167,7 @@ router.get('/dispos/:token', (req, res) => {
 router.delete('/deleteDispo', (req, res) => {
 
   AidantUser.findOne({ token: req.body.token }).then(data => {
-    console.log(data.availabilities)
+    // console.log(data.availabilities)
 
     const availabilityId = req.body.availabilityId;
 
@@ -208,7 +207,7 @@ router.get('/Allusers', (req, res) => {
 //pour afficher le profil utilisateur
 router.get('/Infos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
-    console.log(data)
+    // console.log(data)
     res.json({ result: true, Aidantinfos: data });
   });
 });
