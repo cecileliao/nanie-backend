@@ -224,6 +224,8 @@ router.get('/allmessages/:token', async (req, res) => {
         });
 
 
+    
+
   
       const lastMessages = missions.map((mission) => {
         const message = mission.messages[mission.messages.length - 1];
@@ -258,10 +260,10 @@ router.get('/allmessages/:token', async (req, res) => {
         .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
         .limit(1)
         .populate({
-          path: 'idParent',
+          path: 'idParent idAidant',
           // select: 'parent.nameParent parent.firstNameParent photo',
         });
-  // console.log('missions', missions)
+  console.log('missions', missions)
       const lastMessages = missions.map((mission) => {
         const message = mission.messages[mission.messages.length - 1];
   
