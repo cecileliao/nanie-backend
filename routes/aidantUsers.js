@@ -108,7 +108,7 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
     'availabilities.endingDay': { $lte: endingDay },
   })
     .then(data => {
-      // console.log('data', data)
+       console.log('dataaaaaaa', data)
       if (data[0].availabilities.length > 0) {
         res.json({ result: true, dispos: data });
       } else {

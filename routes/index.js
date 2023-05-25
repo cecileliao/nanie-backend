@@ -109,24 +109,29 @@ router.get('/missionsValidated/:token', (req, res) => {
         if (data) {
           // Si l'utilisateur connecté est un aidant, récupérez ses missions validées
           return Mission.find({ idAidant: data._id, isValidate: true })
-            .populate('idParent');
+            .populate('idParent')
+            .then(missions => {
+              console.log('test => ',missions);
+              res.json(missions)
+            })
         } else {
           // Sinon, recherchez l'utilisateur connecté dans la collection ParentUser
           return ParentUser.findOne({ token: token})
             .then(data => {
-              //console.log("parent", data)
+            
               if (data) {
                 // Si l'utilisateur connecté est un parent, récupérez ses missions validées
-                return Mission.find({ idParent: data._id, isValidate: true })
+                 Mission.find({ idParent: "646f7b11d428377c80974878", isValidate: true })
                   .populate('idAidant')
+                  .then(missions => {
+                    console.log('test => ',missions);
+                    res.json(missions)
+                  })
               } else {
                 throw new Error('Utilisateur non trouvé');
               }
             });
         }
-      })
-      .then(missions => {
-        res.json(missions);
       })
       .catch(error => {
         console.error(error);
@@ -218,7 +223,7 @@ router.get('/allmessages/:token', async (req, res) => {
           select: 'name firstName photo',
         });
 
-        console.log('populate', populate)
+
   
       const lastMessages = missions.map((mission) => {
         const message = mission.messages[mission.messages.length - 1];
