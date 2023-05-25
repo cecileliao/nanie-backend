@@ -97,6 +97,21 @@ router.get('/DetailsMission/:_id', (req, res) => {
 });
 
 
+//route pour modifier la validation de la mission de false a true
+router.put('/missions/:id/validate', async (req, res) => {
+  try {
+    const missionId = req.params.id;
+    const updatedMission = await Mission.findByIdAndUpdate(
+      missionId,
+      { isValidate: true },
+      { new: true } // Ceci est utilisé pour renvoyer la mission mise à jour plutôt que l'ancienne
+    );
+    res.json(updatedMission);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de la mission' });
+  }
+});
 
 
 // router.post('/upload/:token', async (req, res) => {
