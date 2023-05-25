@@ -193,4 +193,93 @@ router.put('/missions/validate/:id', (req, res) => {
   
 // });
 
+// route pour afficher les derniers messages de toutes les conversations
+router.get('/allmessages/:token', async (req, res) => {
+  const { token } = req.params;
+  console.log('token', token)
+
+    const parent = await ParentUser.findOne({ token });
+    const aidant = await AidantUser.findOne({ token });
+
+    if (!parent && !aidant) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!parent && aidant){
+
+      const user = aidant;
+      const userId = user._id;
+    
+      const missions = await Mission.find({ idAidant: userId })
+        .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+        .limit(1)
+        .populate({
+          path: 'idAidant',
+          select: 'name firstName photo',
+        });
+
+        console.log('populate', populate)
+  
+      const lastMessages = missions.map((mission) => {
+        const message = mission.messages[mission.messages.length - 1];
+  
+        if (!message) {
+          // console.log('pas de message')
+          return null;
+        }
+  
+        const { contentMsg, dateMsg } = message;
+        const author = mission.idAidant;
+        console.log('coucou', message)
+        return {
+          idMission: mission._id,
+          photo: author.photo,
+          name: author.name,
+          firstName: author.firstName,
+          contentMsg: contentMsg,
+          dateMsg: dateMsg.toLocaleString(),
+        };
+      });
+  
+      res.json({ lastMessages: lastMessages.filter(Boolean) });
+      console.log(lastMessages)
+    }
+
+    if (!aidant && parent){
+      const user = parent;
+      const userId = user._id;
+
+      const missions = await Mission.find({idParent: userId})
+        .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+        .limit(1)
+        .populate({
+          path: 'idParent',
+          // select: 'parent.nameParent parent.firstNameParent photo',
+        });
+  // console.log('missions', missions)
+      const lastMessages = missions.map((mission) => {
+        const message = mission.messages[mission.messages.length - 1];
+  
+        if (!message) {
+          // console.log('pas de message')
+          return null;
+        }
+  
+        const { contentMsg, dateMsg } = message;
+        const author = mission.idParent;
+        // console.log('coucou', author)
+        return {
+          idMission: mission._id,
+          photo: author.photo,
+          name: author.parent.nameParent,
+          firstName: author.parent.firstNameParent,
+          contentMsg: contentMsg,
+          dateMsg: dateMsg.toLocaleString(),
+        };
+      });
+      res.json({ lastMessages: lastMessages.filter(Boolean) });
+      console.log(lastMessages)
+    }
+});
+
 module.exports = router;
