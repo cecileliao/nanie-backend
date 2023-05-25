@@ -96,21 +96,71 @@ router.get('/DetailsMission/:_id', (req, res) => {
   });
 });
 
+//route pour afficher les détails de toutes les missions par rapport au token de la personne connectée
+
+router.get('/missionsValidated/:token', (req, res) => {
+  const token = req.params.token;
+  //console.log(token)
+
+    // Recherchez l'utilisateur connecté dans la collection AidantUser
+    AidantUser.findOne({ token: token })
+      .then(data => {
+        //console.log("aidant", data)
+        if (data) {
+          // Si l'utilisateur connecté est un aidant, récupérez ses missions validées
+          return Mission.find({ idAidant: data._id, isValidate: true })
+            .populate('idParent');
+        } else {
+          // Sinon, recherchez l'utilisateur connecté dans la collection ParentUser
+          return ParentUser.findOne({ token: token})
+            .then(data => {
+              //console.log("parent", data)
+              if (data) {
+                // Si l'utilisateur connecté est un parent, récupérez ses missions validées
+                return Mission.find({ idParent: data._id, isValidate: true })
+                  .populate('idAidant')
+              } else {
+                throw new Error('Utilisateur non trouvé');
+              }
+            });
+        }
+      })
+      .then(missions => {
+        res.json(missions);
+      })
+      .catch(error => {
+        console.error(error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des missions validées' });
+      });
+  });
+
 
 //route pour modifier la validation de la mission de false a true
-router.put('/missions/:id/validate', async (req, res) => {
-  try {
-    const missionId = req.params.id;
-    const updatedMission = await Mission.findByIdAndUpdate(
-      missionId,
-      { isValidate: true },
-      { new: true } // Ceci est utilisé pour renvoyer la mission mise à jour plutôt que l'ancienne
-    );
-    res.json(updatedMission);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour de la mission' });
-  }
+router.put('/missions/validate/:id', (req, res) => {
+  const missionId = req.params.id;
+
+  Mission.findById(missionId)
+    .then((mission) => {
+      console.log(mission)
+      if (!mission) {
+        return res.status(404).json({ error: 'Mission non trouvée' });
+      }
+
+      mission.isValidate = true;
+
+      mission.save()
+        .then((updatedMission) => {
+          res.json({ result: true, missionValidated: updatedMission });
+        })
+        .catch((error) => {
+          console.error(error);
+          res.status(500).json({ error: 'Erreur lors de la mise à jour de la mission' });
+        });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ error: 'Erreur lors de la recherche de la mission' });
+    });
 });
 
 
