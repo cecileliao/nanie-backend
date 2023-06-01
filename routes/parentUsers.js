@@ -116,7 +116,6 @@ router.get('/Allusers', (req, res) => {
  //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
 router.get('/Infos/:token', (req, res) => {
   ParentUser.findOne({ token: req.params.token }).then(data => {
-    console.log(data)
     res.json({ result: true, Parentinfos: data });
   });
 });

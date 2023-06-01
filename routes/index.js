@@ -31,8 +31,7 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
 
     const parentUser = await ParentUser.findOne({ token: parentToken });
     const aidantUser = await AidantUser.findOne({ token: aidantToken });
-    //console.log("parentUser", parentUser)
-    console.log("aidantUserRate", aidantUser.aidant.rate)
+
     // Vérification si les utilisateurs existent
     if (!parentUser || !aidantUser) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
@@ -91,7 +90,6 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
 router.get('/DetailsMission/:_id', (req, res) => {
   Mission.findOne({ _id: req.params._id}).populate('idAidant idParent')
   .then(data => {
-    console.log(data)
     res.json({ result: true, Aidantinfos: data });
   });
 });
@@ -111,7 +109,6 @@ router.get('/missionsValidated/:token', (req, res) => {
           return Mission.find({ idAidant: data._id, isValidate: true })
             .populate('idParent')
             .then(missions => {
-              console.log('test => ',missions);
               res.json(missions)
             })
         } else {
@@ -124,7 +121,6 @@ router.get('/missionsValidated/:token', (req, res) => {
                  Mission.find({ idParent: "646f7b11d428377c80974878", isValidate: true })
                   .populate('idAidant')
                   .then(missions => {
-                    console.log('test => ',missions);
                     res.json(missions)
                   })
               } else {
@@ -146,7 +142,6 @@ router.put('/missions/validate/:id', (req, res) => {
 
   Mission.findById(missionId)
     .then((mission) => {
-      console.log(mission)
       if (!mission) {
         return res.status(404).json({ error: 'Mission non trouvée' });
       }
@@ -201,80 +196,38 @@ router.put('/missions/validate/:id', (req, res) => {
 // route pour afficher les derniers messages de toutes les conversations
 router.get('/allmessages/:token', async (req, res) => {
   const { token } = req.params;
-  console.log('token', token)
 
-    const parent = await ParentUser.findOne({ token });
-    const aidant = await AidantUser.findOne({ token });
+const parent = await ParentUser.findOne({ token });
+const aidant = await AidantUser.findOne({ token });
 
-    if (!parent && !aidant) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+if (!parent && !aidant) {
+  return res.status(404).json({ error: 'User not found' });
+}
 
-    if (!parent && aidant){
+if (!parent && aidant){
 
-      const user = aidant;
-      const userId = user._id;
-    
-      const missions = await Mission.find({ idAidant: userId })
-        .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-        .limit(1)
-        .populate({
-          path: 'idAidant',
-          select: 'name firstName photo',
-        });
+  const user = aidant;
+  const userId = user._id;
+
+  const missions = await Mission.find({ idAidant: userId })
+    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+    .limit(1)
+    .populate({
+      path: 'idAidant idParent',
+      // select: 'name firstName photo',
+    })
+    .then(missions => {
 
 
-    
-
-  
       const lastMessages = missions.map((mission) => {
         const message = mission.messages[mission.messages.length - 1];
   
         if (!message) {
-          // console.log('pas de message')
-          return null;
-        }
-  
-        const { contentMsg, dateMsg } = message;
-        const author = mission.idAidant;
-        console.log('coucou', message)
-        return {
-          idMission: mission._id,
-          photo: author.photo,
-          name: author.name,
-          firstName: author.firstName,
-          contentMsg: contentMsg,
-          dateMsg: dateMsg.toLocaleString(),
-        };
-      });
-  
-      res.json({ lastMessages: lastMessages.filter(Boolean) });
-      console.log(lastMessages)
-    }
-
-    if (!aidant && parent){
-      const user = parent;
-      const userId = user._id;
-
-      const missions = await Mission.find({idParent: userId})
-        .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-        .limit(1)
-        .populate({
-          path: 'idParent idAidant',
-          // select: 'parent.nameParent parent.firstNameParent photo',
-        });
-  console.log('missions', missions)
-      const lastMessages = missions.map((mission) => {
-        const message = mission.messages[mission.messages.length - 1];
-  
-        if (!message) {
-          // console.log('pas de message')
           return null;
         }
   
         const { contentMsg, dateMsg } = message;
         const author = mission.idParent;
-        // console.log('coucou', author)
         return {
           idMission: mission._id,
           photo: author.photo,
@@ -284,9 +237,50 @@ router.get('/allmessages/:token', async (req, res) => {
           dateMsg: dateMsg.toLocaleString(),
         };
       });
+  
       res.json({ lastMessages: lastMessages.filter(Boolean) });
-      console.log(lastMessages)
-    }
+    })
+  
+}
+
+if (!aidant && parent){
+  const user = parent;
+  const userId = user._id;
+
+  const missions = await Mission.find({idParent: userId})
+    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+    .limit(1)
+    .populate({
+      path: 'idParent idAidant',
+      // select: 'parent.nameParent parent.firstNameParent photo',
+    })
+    .then((missions) => {
+
+      // console.log('missions back parent=> ',missions);
+
+      const lastMessages = missions.map((mission) => {
+        const message = mission.messages[mission.messages.length - 1];
+        // console.log('message back parent=> ',message);
+        // console.log('mission2 back parent=> ',mission);
+        if (!message) {
+          console.log('pas de message')
+          return null;
+        }
+  
+        const { contentMsg, dateMsg } = message;
+        const author = mission.idAidant;
+        return {
+          idMission: mission._id,
+          photo: author.photo,
+          name: author.name,
+          firstName: author.firstName,
+          contentMsg: contentMsg,
+          dateMsg: dateMsg.toLocaleString(),
+        };
+      });
+      res.json({ lastMessages: lastMessages.filter(Boolean) });
+    });
+}
 });
 
 module.exports = router;
