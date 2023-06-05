@@ -14,10 +14,10 @@ const date = new Date();
 // route pour créer un message et le poster en base de données
 router.post('/addMessage/:idMission', async (req, res) => {
 
-    // if (!checkBody(req.body, ['token','content'])) {
-    //     res.json({ result: false, error: 'Missing or empty fields' });
-    //     return;
-    // }
+    if (!checkBody(req.body, ['token','content'])) {
+        res.json({ result: false, error: 'Missing or empty fields' });
+        return;
+    }
 
     const { idMission } = req.params;
     const { contentMsg } = req.body;
@@ -34,8 +34,8 @@ router.post('/addMessage/:idMission', async (req, res) => {
       const newMessage = {
         dateMsg: date.toLocaleString(),
         contentMsg,
-        // idAidant: mission.idAidant,
-        // idParent: mission.idParent,
+        idAidant: mission.idAidant,
+        idParent: mission.idParent,
       };
   
       // Ajoutez le nouveau message à la liste des messages de la mission
@@ -60,16 +60,16 @@ router.post('/addMessage/:idMission', async (req, res) => {
     try {
       const mission = await Mission.findById(idMission)
         .populate({
-          path: 'messages.idParent',
-          select: 'name firstName photo',
+          path: 'messages.idParent',        //chemin utilisé par le populate
+          select: 'name firstName photo',   //propriétés que l'on souhaite récupérer
         })
-        .sort({ 'messages.dateMsg': -1 });
+        .sort({ 'messages.dateMsg': -1 }); //pour afficher les messages par ordre décroissant 
   
       if (!mission) {
         return res.status(404).json({ error: 'Mission not found' });
       }
   
-      const messages = mission.messages.map((message) => {
+      const messages = mission.messages.map((message) => {     //permet de renvoyer un composant des infos du message
         const { idParent, idAidant, contentMsg, dateMsg } = message;
         const author = idParent || idAidant;
   
@@ -89,62 +89,92 @@ router.post('/addMessage/:idMission', async (req, res) => {
   });
 
 
-//route test:
-router.get('/allmessages/:idMission', async (req, res) => {
-  const { idMission } = req.params;
+// route pour afficher les derniers messages de toutes les conversations selon l'utilisateur
+router.get('/allmessages/:token', async (req, res) => {
+  const { token } = req.params;
 
-  if (user.isParent){
+const parent = await ParentUser.findOne({ token });
+const aidant = await AidantUser.findOne({ token });
 
-      const mission = await Mission.findById(idMission)
-      .populate('mission.idParent', 'name firstName photo');
+if (!parent && !aidant) {
+  return res.status(404).json({ error: 'User not found' });
+}
 
-      if (mission) {
-        const messages = mission.messages.map((message) => {
-        const {contentMsg, dateMsg } = message;
-        const author = mission.name; // Utilisateur unique pour le profil
+if (!parent && aidant){
 
+  const user = aidant;
+  const userId = user._id;
+
+  const missions = await Mission.find({ idAidant: userId })
+    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+    .limit(1) //afficher 1 seul msg
+    .populate({
+      path: 'idAidant idParent',
+    })
+    .then(missions => {
+
+
+      const lastMessages = missions.map((mission) => { //afficher les missions avec le dernier msg
+        const message = mission.messages[mission.messages.length - 1]; //permet de récupérer l'index du dernier msg
+  
+        if (!message) {
+          return null;
+        }
+  
+        const { contentMsg, dateMsg } = message;
+        const author = mission.idParent; 
         return {
+          idMission: mission._id,
+          photo: author.photo,
+          name: author.parent.nameParent,
+          firstName: author.parent.firstNameParent,
+          contentMsg: contentMsg,
+          dateMsg: dateMsg.toLocaleString(),
+        };
+      });
+  
+      res.json({ lastMessages: lastMessages.filter(Boolean) }); //filtre le tableau lastMessages et supprimer les valeurs nulles et undefined
+      //filtre les valeurs pas utiles
+    })
+  
+}
+
+if (!aidant && parent){
+  const user = parent;
+  const userId = user._id;
+
+  const missions = await Mission.find({idParent: userId})
+    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
+    .limit(1)
+    .populate({
+      path: 'idParent idAidant',
+    })
+    .then((missions) => {
+
+
+      const lastMessages = missions.map((mission) => {
+        const message = mission.messages[mission.messages.length - 1];
+
+        if (!message) {
+          console.log('pas de message')
+          return null;
+        }
+  
+        const { contentMsg, dateMsg } = message;
+        const author = mission.idAidant;
+        return {
+          idMission: mission._id,
           photo: author.photo,
           name: author.name,
           firstName: author.firstName,
-          content: contentMsg,
-          dateMsg: new Date(dateMsg).toLocaleString(),
+          contentMsg: contentMsg,
+          dateMsg: dateMsg.toLocaleString(),
         };
       });
-
-      res.json({ messages });
-    } 
-    else {
-      const mission = await Mission.findById(idMission)
-      .populate({
-        path: 'messages.idAidant',
-        select: 'name firstName photo',
-      })
-
-      if (!mission) {
-        return res.status(404).json({ error: 'Mission not found' });
-      }
-
-      const messages = mission.messages.map((message) => {
-        const {contentMsg, dateMsg } = message;
-        const author = mission.name; // Utilisateur unique pour le profil
-
-        return {
-          photo: author.photo,
-          name: author.name,
-          firstName: author.firstName,
-          content: contentMsg,
-          dateMsg: new Date(dateMsg).toLocaleString(),
-        };
-      });
-
-      res.json({ messages });
-    } 
-  }
+      res.json({ lastMessages: lastMessages.filter(Boolean) });
+    });
+}
 });
-
-
-
   
   
 

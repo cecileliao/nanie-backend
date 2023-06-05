@@ -19,7 +19,6 @@ const missionSchema = mongoose.Schema({
     endingDay: Date,
     startingHour: Date,
     endingHour: Date,
-    // spotter seulement les éléments utiles
     idAidant: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
     idParent: { type: mongoose.Schema.Types.ObjectId, ref:'parentUsers' },
     rateByHour: Number,

@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var moment = require('moment');
 
 
 require('../models/connection');
@@ -12,12 +11,11 @@ const { checkBody } = require('../modules/checkBody');
 //crypt le mot de passe
 const uid2 = require('uid2');
 const bcrypt = require('bcrypt');
-const { token } = require('morgan');
 
 
 // Route SignUp
 router.post('/signup', (req, res) => {
-  // console.log(req.body) pour verifier la route
+
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
@@ -54,7 +52,7 @@ router.post('/signup', (req, res) => {
         firstName,
         email,
         password: hash,
-        signup: new Date(),        // Date du jour format ?
+        signup: new Date(),        
         phone,
         age,
         sexe,
@@ -64,7 +62,7 @@ router.post('/signup', (req, res) => {
         introBio,
         longBio,
         isParent,
-        averageNote,        // calcul de la moyenne pour la note et les coeurs ?
+        averageNote,       
         aidant,
         talents,
         availabilities: [],
@@ -96,19 +94,17 @@ router.post('/signin', (req, res) => {
   });
 });
 
-///////Route pour visualiser les dispos de tous les utilisateurs
+///////Route pour visualiser les dispos des aidants quand le parent fait une recherche 
 router.get('/search/:startingDay/:endingDay', (req, res) => {
 
   const { startingDay, endingDay } = req.params;
 
-  // console.log('starting', startingDay, endingDay)
 
   AidantUser.find({
-    'availabilities.startingDay': { $gte: startingDay },
-    'availabilities.endingDay': { $lte: endingDay },
+    'availabilities.startingDay': { $gte: startingDay }, //$gte : greater than or equal to
+    'availabilities.endingDay': { $lte: endingDay },    //$lte :less than or equal to
   })
     .then(data => {
-       console.log('dataaaaaaa', data)
       if (data[0].availabilities.length > 0) {
         res.json({ result: true, dispos: data });
       } else {
@@ -121,17 +117,18 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
  });
  
 
-///////Route pour visualiser les dispos d'un utilisateur selon son token
+///////Route pour visualiser les dispos d'un aidant selon son token pour les afficher dans sa page de calendrier
+
 router.get('/dispos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
-    //console.log(data.availabilities)
     res.json({ result: true, UserDispos: data.availabilities });
   });
  });
 
 
 
- //////////route post ajout un dispo d'un utilisateur
+ //////////route post ajout un dispo d'un aidant
+
  router.post('/addDispo/:token', (req, res) => {
 
      
@@ -153,21 +150,20 @@ router.get('/dispos/:token', (req, res) => {
         endingHour,
       };
 
-      //console.log(newAvailability)
       data.availabilities.push(newAvailability);
 
       data.save().then(savedAvaibility => {
-        // console.log(newAvailability)
         res.json({ result: true, UserDispos: savedAvaibility.availabilities, newAvailability: newAvailability });
       });
   }).catch((err) => console.log(err))
 });
 
-//route pour supprimer une disponibilité
+//////route pour supprimer une disponibilité d'un aidant 
+
 router.delete('/deleteDispo', (req, res) => {
 
   AidantUser.findOne({ token: req.body.token }).then(data => {
-    // console.log(data.availabilities)
+
 
     const availabilityId = req.body.availabilityId;
 
@@ -197,6 +193,7 @@ router.delete('/deleteDispo', (req, res) => {
 
 
 /////Route pour la visualisation de tous les utilisateurs dans la bdd
+//pour test dans Thunder Client, non utilisé 
 router.get('/Allusers', (req, res) => {
   AidantUser.find().then(data => {
     res.json({ allUsers: data });
@@ -207,24 +204,9 @@ router.get('/Allusers', (req, res) => {
 //pour afficher le profil utilisateur
 router.get('/Infos/:token', (req, res) => {
   AidantUser.findOne({ token: req.params.token }).then(data => {
-    // console.log(data)
     res.json({ result: true, Aidantinfos: data });
   });
 });
-
-// //Route pour les messages?
-// router.get('/messages/:token', (req, res) => {
-//   AidantUser.findOne({ token: req.params.token }).then(data => {
-//     console.log(data);
-
-//     Mission.find({ idAidant: data._id })
-//       .populate('messages') // Charger les messages de la mission
-//       .then(missions => {
-//         console.log(missions);
-//         res.json({ result: true, Aidantinfos: data, messages: messages });
-//       })
-//   })
-// });
 
 
 module.exports = router;

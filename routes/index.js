@@ -1,16 +1,20 @@
 var express = require('express');
 var router = express.Router();
 
+//pour cloudinary
 const cloudinary = require('cloudinary').v2;
-const uniqid = require('uniqid');
+const uniqid = require('uniqid'); //générer une id unique pour l'image
 const fs = require('fs');
+
 const AidantUser = require("../models/aidantUsers")
 const ParentUser = require("../models/parentUsers")
 const Mission = require("../models/missions")
 
+///Pour enregistrer l'url Couldinary dans notre BDD MongoDB
+
 router.post('/upload', async (req, res) => {
-  const photoPath = `./tmp/${uniqid()}.jpg`;
-  const resultMove = await req.files.photoFromFront.mv(photoPath);
+  const photoPath = `./tmp/${uniqid()}.jpg`; //lien local, création d'un fichier tmp temporaire 
+  const resultMove = await req.files.photoFromFront.mv(photoPath); //pour le copier dans le dossier temporaire
 
   if (!resultMove) {
     const resultCloudinary = await cloudinary.uploader.upload(photoPath);
@@ -23,7 +27,7 @@ router.post('/upload', async (req, res) => {
   
 });
 
-//route pour créer une mission
+//route pour créer une mission/une conversation
 router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
   try {
     const parentToken = req.params.parentToken;
@@ -49,7 +53,7 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
     
     //calcul du montant total de la mission
     const amount = aidantUser.aidant.rate * differenceInHours
-    //console.log(amount)
+
 
     const mission = new Mission({
       startingDay,
@@ -71,7 +75,6 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
     //ajout de l'id de la mission dans l'aidant et le parent associés 
     aidantUser.missions.push(savedMission);
     parentUser.missions.push(savedMission);
-    //console.log(aidantUser.missions)
 
     await aidantUser.save(); // Enregistrer les modifications dans la collection aidantUsers de MongoDB
     await parentUser.save(); // Enregistrer les modifications dans la collection parentUsers de MongoDB
@@ -83,7 +86,6 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
-//mission crée Emma Lorain et Léa Colin (parent)
 
 
 //route pour afficher les détails de la mission par rapport à l'id de la mission
@@ -98,7 +100,7 @@ router.get('/DetailsMission/:_id', (req, res) => {
 
 router.get('/missionsValidated/:token', (req, res) => {
   const token = req.params.token;
-  //console.log(token)
+
 
     // Recherchez l'utilisateur connecté dans la collection AidantUser
     AidantUser.findOne({ token: token })
@@ -118,7 +120,7 @@ router.get('/missionsValidated/:token', (req, res) => {
             
               if (data) {
                 // Si l'utilisateur connecté est un parent, récupérez ses missions validées
-                 Mission.find({ idParent: "646f7b11d428377c80974878", isValidate: true })
+                 Mission.find({ idParent: data._id, isValidate: true })
                   .populate('idAidant')
                   .then(missions => {
                     res.json(missions)
@@ -164,123 +166,7 @@ router.put('/missions/validate/:id', (req, res) => {
 });
 
 
-// router.post('/upload/:token', async (req, res) => {
-//   const parent = ParentUser.findOne({token: req.params.token})
-//   const aidant = AidantUser.findOne({token: req.params.token})
-
-//   const photoPath = `./tmp/${uniqid()}.jpg`;
-//   const resultMove = await req.files.photoFromFront.mv(photoPath);
-
-//   if (!resultMove) {
-//     const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-//     fs.unlinkSync(photoPath);
-
-//     if (!parent && aidant) {
-//       aidant.photo = resultCloudinary.secure_url
-//       aidant.save()
-//     } else if (!aidant && parent) {
-//       parent.photo = resultCloudinary.secure_url
-//       parent.save()
-//     } else {
-//       return res.json({ result: false });
-//     }
-    
-//     res.json({ result: true, url: resultCloudinary.secure_url });
-//   } else {
-//     res.json({ result: false, error: resultMove });
-//   }
-
-  
-// });
-
-// route pour afficher les derniers messages de toutes les conversations
-router.get('/allmessages/:token', async (req, res) => {
-  const { token } = req.params;
-
-const parent = await ParentUser.findOne({ token });
-const aidant = await AidantUser.findOne({ token });
-
-if (!parent && !aidant) {
-  return res.status(404).json({ error: 'User not found' });
-}
-
-if (!parent && aidant){
-
-  const user = aidant;
-  const userId = user._id;
-
-  const missions = await Mission.find({ idAidant: userId })
-    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-    .limit(1)
-    .populate({
-      path: 'idAidant idParent',
-      // select: 'name firstName photo',
-    })
-    .then(missions => {
 
 
-      const lastMessages = missions.map((mission) => {
-        const message = mission.messages[mission.messages.length - 1];
-  
-        if (!message) {
-          return null;
-        }
-  
-        const { contentMsg, dateMsg } = message;
-        const author = mission.idParent;
-        return {
-          idMission: mission._id,
-          photo: author.photo,
-          name: author.parent.nameParent,
-          firstName: author.parent.firstNameParent,
-          contentMsg: contentMsg,
-          dateMsg: dateMsg.toLocaleString(),
-        };
-      });
-  
-      res.json({ lastMessages: lastMessages.filter(Boolean) });
-    })
-  
-}
-
-if (!aidant && parent){
-  const user = parent;
-  const userId = user._id;
-
-  const missions = await Mission.find({idParent: userId})
-    .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-    .limit(1)
-    .populate({
-      path: 'idParent idAidant',
-      // select: 'parent.nameParent parent.firstNameParent photo',
-    })
-    .then((missions) => {
-
-      // console.log('missions back parent=> ',missions);
-
-      const lastMessages = missions.map((mission) => {
-        const message = mission.messages[mission.messages.length - 1];
-        // console.log('message back parent=> ',message);
-        // console.log('mission2 back parent=> ',mission);
-        if (!message) {
-          console.log('pas de message')
-          return null;
-        }
-  
-        const { contentMsg, dateMsg } = message;
-        const author = mission.idAidant;
-        return {
-          idMission: mission._id,
-          photo: author.photo,
-          name: author.name,
-          firstName: author.firstName,
-          contentMsg: contentMsg,
-          dateMsg: dateMsg.toLocaleString(),
-        };
-      });
-      res.json({ lastMessages: lastMessages.filter(Boolean) });
-    });
-}
-});
 
 module.exports = router;

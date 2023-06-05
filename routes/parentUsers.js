@@ -14,7 +14,7 @@ const bcrypt = require('bcrypt');
 
 // Route SignUp
 router.post('/signup', (req, res) => {
-  // console.log(req.body) pour verifier la route
+
   if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
@@ -27,11 +27,8 @@ router.post('/signup', (req, res) => {
     // req.body destructuration
       const {  
         photo,
-        // nameParent,
-        // firstNameParent,
         email,
         phone,
-        // shortBio,
         name,
         firstName,
         age,
@@ -41,8 +38,7 @@ router.post('/signup', (req, res) => {
         city,
         introBio,
         longBio,
-        // gemProfil,
-        parent,
+        parent, //informations du contact
         talents,
         averageNote, 
         } = req.body;
@@ -50,14 +46,11 @@ router.post('/signup', (req, res) => {
       const newParentUser = new ParentUser({
         token: uid2(32),
         photo,
-        // nameParent,
-        // firstNameParent,
         email,
         password: hash,
         phone,
-        // shortBio,
-        signup: new Date(),         // Date du jour format
-        averageNote,        // calcul de la moyenne pour la note et les coeurs ?
+        signup: new Date(),         
+        averageNote,       
         name,
         firstName,
         age,
@@ -67,7 +60,6 @@ router.post('/signup', (req, res) => {
         city,
         introBio,
         longBio,
-        // gemProfil,
         parent,
         talents,
         missions: [],
@@ -99,14 +91,10 @@ router.post('/signin', (req, res) => {
   });
 });
 
-//visualisation de tous les utilisateurs dans la bdd
-router.get('/Allusers', (req, res) => {
-  AidantUser.find().then(data => {
-    res.json({ allUsers: data });
-  });
- });
+
 
 //Route pour la visualisation de tous les utilisateurs dans la bdd
+//non utilisé, pour tester 
 router.get('/Allusers', (req, res) => {
   ParentUser.find().then(data => {
     res.json({ allUsers: data });
@@ -120,14 +108,5 @@ router.get('/Infos/:token', (req, res) => {
   });
 });
 
-// router.get('/canBookmark/:token', (req, res) => {
-//   User.findOne({ token: req.params.token }).then(data => {
-//     if (data) {
-//       res.json({ result: true, canBookmark: data.canBookmark });
-//     } else {
-//       res.json({ result: false, error: 'User not found' });
-//     }
-//   });
-// });
 
 module.exports = router;
