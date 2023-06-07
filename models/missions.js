@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 
 const messageSchema = mongoose.Schema({
 	dateMsg: Date,
-    // (24/02/2023 14:00)
     contentMsg: String,
-    idAidant: { type: mongoose.Schema.Types.ObjectId, ref:'aidantUsers' },
-    idParent: { type: mongoose.Schema.Types.ObjectId, ref:'parentUsers' },
+    author: {
+        firstName: String,
+        name: String,
+        isParent: Boolean,
+        photo: String,
+	}
 });
 
 const recommandationSchema = mongoose.Schema({

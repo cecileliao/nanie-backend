@@ -20,7 +20,7 @@ router.post('/addMessage/:idMission', async (req, res) => {
     }
 
     const { idMission } = req.params;
-    const { contentMsg } = req.body;
+    const { contentMsg, token } = req.body;
   
     try {
       // Recherchez la mission correspondante dans la base de données
@@ -28,32 +28,66 @@ router.post('/addMessage/:idMission', async (req, res) => {
   
       if (!mission) {
         return res.status(404).json({ error: 'Mission not found' });
-      } 
+      }
 
-      // Créez un nouvel objet message à partir des données fournies
-      const newMessage = {
-        dateMsg: date.toLocaleString(),
-        contentMsg,
-        idAidant: mission.idAidant,
-        idParent: mission.idParent,
-      };
-  
-      // Ajoutez le nouveau message à la liste des messages de la mission
-      mission.messages.push(newMessage);
-  
-      // Enregistrez les modifications de la mission dans la base de données
-      await mission.save();
-  
-      // Répondez avec le message créé
-      res.json({ result: true, message: newMessage });
+        const parent = await ParentUser.findOne({ token });
+        const aidant = await AidantUser.findOne({ token });
+    
+        if (!parent && !aidant) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+    
+        let author;
+        if (aidant) {
+          author = await AidantUser.findById(mission.idAidant);
+          if (!author) {
+            return res.status(404).json({ error: 'Aidant not found' });
+          }
+          // Créez un nouvel objet message à partir des données fournies
+          const newMessage = {
+            dateMsg: date.toLocaleString(),
+            contentMsg,
+            author:{
+              firstName: author.firstName, //author.firstName vient du findById
+              name: author.name,
+              isParent: false,
+              photo: author.photo,
+            }
+          };
+          mission.messages.push(newMessage);                      // Ajoutez le nouveau message à la liste des messages de la mission
+          await mission.save();                                   // Enregistrez les modifications de la mission dans la base de données
+          res.json({ result: true, message: newMessage });        // Répondez avec le message créé
+        }
+
+        if (parent) {
+          author = await ParentUser.findById(mission.idParent);
+          if (!author) {
+            return res.status(404).json({ error: 'Parent not found' });
+          }
+          // Créez un nouvel objet message à partir des données fournies
+          const newMessage = {
+            dateMsg: date.toLocaleString(),
+            contentMsg,
+            author: {
+              firstName: author.parent.firstNameParent,
+              name: author.parent.nameParent,
+              isParent: true,
+              photo: author.photo,
+            }
+          };
+          mission.messages.push(newMessage);                      // Ajoutez le nouveau message à la liste des messages de la mission
+          await mission.save();                                   // Enregistrez les modifications de la mission dans la base de données
+          res.json({ result: true, message: newMessage });        // Répondez avec le message créé
+        }
+
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
 
 
-
   // route pour afficher tous les messages dans une page de conversation
+
   router.get('/allmessages/:token/:idMission', async (req, res) => {
     const { token, idMission } = req.params;
 
@@ -64,35 +98,43 @@ router.post('/addMessage/:idMission', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (aidant){
+    let user;
 
+    if (aidant){
+    user = aidant;
     const mission = await Mission.findById(idMission)
       .populate({
         path: 'idParent idAidant',
       })
       .sort({ 'messages.dateMsg': -1 })
       .then(missionData => {
+
         if (!missionData) {
           return res.status(404).json({ error: 'Mission not found' });
         }
-       
+
         const messages = missionData.messages.map((message) => {
-          const { contentMsg, dateMsg } = message;
-          const author = missionData.idAidant;
+          const { author, contentMsg, dateMsg } = message;
+
           return {
-            photo: author.photo,
-            name: author.name,
-            firstName: author.firstName,
+            author:{
+              photo: author.photo,
+              name: author.name,
+              firstName: author.firstName,
+              isParent: author.isParent,
+            },
             contentMsg: contentMsg,
             dateMsg: dateMsg.toLocaleString(),
           };
 
         });
+        
         res.json({ result: true, messages })
       });
     }
 
     if (parent){
+    user = parent;
     const mission = await Mission.findById(idMission)
       .populate({
         path: 'idParent idAidant',
@@ -105,12 +147,15 @@ router.post('/addMessage/:idMission', async (req, res) => {
         }
       
         const messages = missionData.messages.map((message) => {
-          const { contentMsg, dateMsg } = message;
-          const author = missionData.idParent;
+          const { author, contentMsg, dateMsg } = message;
+
           return {
-            photo: author.photo,
-            name: author.parent.nameParent,
-            firstName: author.parent.firstNameParent,
+            author:{
+              photo: author.photo,
+              name: author.name,
+              firstName: author.firstName,
+              isParent: author.isParent,
+            },
             contentMsg: contentMsg,
             dateMsg: dateMsg.toLocaleString(),
           };
@@ -141,7 +186,6 @@ if (aidant){
 
   const missions = await Mission.find({ idAidant: userId })
     .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-    .limit(1) //afficher 1 seul msg
     .populate({
       path: 'idAidant idParent',
     })
@@ -167,8 +211,7 @@ if (aidant){
         };
       });
   
-      res.json({ lastMessages: lastMessages.filter(Boolean) }); //filtre le tableau lastMessages et supprimer les valeurs nulles et undefined
-      //filtre les valeurs pas utiles
+      res.json({ lastMessages: lastMessages.filter(Boolean) }); //En utilisant lastMessages.filter(Boolean), on s'assure que seuls les objets avec des messages valides seront inclus dans le tableau lastMessages renvoyé par la route. Cela permet d'éviter d'inclure des conversations vides ou inexistantes dans la réponse.
     })
   
 }
@@ -179,7 +222,6 @@ if (parent){
 
   const missions = await Mission.find({idParent: userId})
     .sort({ 'messages.dateMsg': -1 }) // Tri par ordre descendant (les plus anciens en haut)
-    .limit(1)
     .populate({
       path: 'idParent idAidant',
     })

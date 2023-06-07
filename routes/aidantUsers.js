@@ -94,17 +94,24 @@ router.post('/signin', (req, res) => {
   });
 });
 
+
 ///////Route pour visualiser les dispos des aidants quand le parent fait une recherche 
+
+// $and est un opérateur de requête dans MongoDB. Il est utilisé pour effectuer une recherche où plusieurs conditions doivent être satisfaites simultanément.
+// $lte = less than or equal et $gte = greather than or equal
+
 router.get('/search/:startingDay/:endingDay', (req, res) => {
 
   const { startingDay, endingDay } = req.params;
 
-
   AidantUser.find({
-    'availabilities.startingDay': { $gte: startingDay }, //$gte : greater than or equal to
-    'availabilities.endingDay': { $lte: endingDay },    //$lte :less than or equal to
+    $and: [
+      { 'availabilities.startingDay': { $lte: startingDay } },
+      { 'availabilities.endingDay': { $gte: endingDay } }
+    ]
   })
     .then(data => {
+      console.log('data', data)
       if (data[0].availabilities.length > 0) {
         res.json({ result: true, dispos: data });
       } else {
