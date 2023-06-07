@@ -14,7 +14,7 @@ const date = new Date();
 // route pour créer un message et le poster en base de données
 router.post('/addMessage/:idMission', async (req, res) => {
 
-    if (!checkBody(req.body, ['token','content'])) {
+    if (!checkBody(req.body, ['token','contentMsg'])) {
         res.json({ result: false, error: 'Missing or empty fields' });
         return;
     }
@@ -54,43 +54,77 @@ router.post('/addMessage/:idMission', async (req, res) => {
 
 
   // route pour afficher tous les messages dans une page de conversation
-  router.get('/allmessages/:idMission', async (req, res) => {
-    const { idMission } = req.params;
-  
-    try {
-      const mission = await Mission.findById(idMission)
-        .populate({
-          path: 'messages.idParent',        //chemin utilisé par le populate
-          select: 'name firstName photo',   //propriétés que l'on souhaite récupérer
-        })
-        .sort({ 'messages.dateMsg': -1 }); //pour afficher les messages par ordre décroissant 
-  
-      if (!mission) {
-        return res.status(404).json({ error: 'Mission not found' });
-      }
-  
-      const messages = mission.messages.map((message) => {     //permet de renvoyer un composant des infos du message
-        const { idParent, idAidant, contentMsg, dateMsg } = message;
-        const author = idParent || idAidant;
-  
-        return {
-          photo: author.photo,
-          name: author.name,
-          firstName: author.firstName,
-          content: contentMsg,
-          dateMsg: dateMsg.toLocaleString(),
-        };
+  router.get('/allmessages/:token/:idMission', async (req, res) => {
+    const { token, idMission } = req.params;
+
+    const parent = await ParentUser.findOne({ token });
+    const aidant = await AidantUser.findOne({ token });
+
+    if (!parent && !aidant) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (aidant){
+
+    const mission = await Mission.findById(idMission)
+      .populate({
+        path: 'idParent idAidant',
+      })
+      .sort({ 'messages.dateMsg': -1 })
+      .then(missionData => {
+        if (!missionData) {
+          return res.status(404).json({ error: 'Mission not found' });
+        }
+       
+        const messages = missionData.messages.map((message) => {
+          const { contentMsg, dateMsg } = message;
+          const author = missionData.idAidant;
+          return {
+            photo: author.photo,
+            name: author.name,
+            firstName: author.firstName,
+            contentMsg: contentMsg,
+            dateMsg: dateMsg.toLocaleString(),
+          };
+
+        });
+        res.json({ result: true, messages })
       });
-  
-      res.json({ messages });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+    }
+
+    if (parent){
+    const mission = await Mission.findById(idMission)
+      .populate({
+        path: 'idParent idAidant',
+      })
+      .sort({ 'messages.dateMsg': -1 })
+      .then(missionData => {
+
+        if (!missionData) {
+          return res.status(404).json({ error: 'Mission not found' });
+        }
+      
+        const messages = missionData.messages.map((message) => {
+          const { contentMsg, dateMsg } = message;
+          const author = missionData.idParent;
+          return {
+            photo: author.photo,
+            name: author.parent.nameParent,
+            firstName: author.parent.firstNameParent,
+            contentMsg: contentMsg,
+            dateMsg: dateMsg.toLocaleString(),
+          };
+
+        });
+    
+        res.json({ result: true, messages })
+      });
     }
   });
 
 
 // route pour afficher les derniers messages de toutes les conversations selon l'utilisateur
-router.get('/allmessages/:token', async (req, res) => {
+router.get('/allchats/:token', async (req, res) => {
   const { token } = req.params;
 
 const parent = await ParentUser.findOne({ token });
@@ -100,7 +134,7 @@ if (!parent && !aidant) {
   return res.status(404).json({ error: 'User not found' });
 }
 
-if (!parent && aidant){
+if (aidant){
 
   const user = aidant;
   const userId = user._id;
@@ -139,7 +173,7 @@ if (!parent && aidant){
   
 }
 
-if (!aidant && parent){
+if (parent){
   const user = parent;
   const userId = user._id;
 
