@@ -98,43 +98,48 @@ router.get('/DetailsMission/:_id', (req, res) => {
 
 //route pour afficher les détails de toutes les missions par rapport au token de la personne connectée
 
-router.get('/missionsValidated/:token', (req, res) => {
+router.get('/missionsValidated/:token', async (req, res) => {
   const token = req.params.token;
+  try {
+    const parent = await ParentUser.findOne({ token });
+    const aidant = await AidantUser.findOne({ token });
 
+    if (!parent && !aidant) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // Recherchez l'utilisateur connecté dans la collection AidantUser
-    AidantUser.findOne({ token: token })
-      .then(data => {
-        //console.log("aidant", data)
-        if (data) {
-          // Si l'utilisateur connecté est un aidant, récupérez ses missions validées
-          return Mission.find({ idAidant: data._id, isValidate: true })
-            .populate('idParent')
-            .then(missions => {
-              res.json(missions)
-            })
-        } else {
-          // Sinon, recherchez l'utilisateur connecté dans la collection ParentUser
-          return ParentUser.findOne({ token: token})
-            .then(data => {
-            
-              if (data) {
-                // Si l'utilisateur connecté est un parent, récupérez ses missions validées
-                 Mission.find({ idParent: data._id, isValidate: true })
-                  .populate('idAidant')
-                  .then(missions => {
-                    res.json(missions)
-                  })
-              } else {
-                throw new Error('Utilisateur non trouvé');
-              }
-            });
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        res.status(500).json({ error: 'Erreur lors de la récupération des missions validées' });
-      });
+    if (aidant) {
+      const user = aidant;
+      const userId = user._id;
+      // Si l'utilisateur connecté est un aidant, récupérez ses missions validées
+      const missions = await Mission.find({ idAidant: userId, isValidate: true })
+        .populate({
+          path: 'idParent',
+          populate: {
+            path: 'parent',
+            model: 'parentUsers',
+          },
+        })
+        .then((missions) => {
+          res.json(missions);
+        });
+    }
+
+    if (parent) {
+      const user = parent;
+      const userId = user._id;
+
+      // Si l'utilisateur connecté est un parent, récupérez ses missions validées
+      const missions = await Mission.find({ idParent: userId, isValidate: true })
+        .populate('idAidant')
+        .then((missions) => {
+          res.json(missions);
+        });
+    }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des missions validées' });
+    }
   });
 
 
