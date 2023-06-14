@@ -20,7 +20,8 @@ router.post('/signup', (req, res) => {
     return;
   }
   // Check if the user has not already been registered
-  ParentUser.findOne({ email: req.body.email }).then(data => {
+  ParentUser.findOne({ email: req.body.email })
+  .then(data => {
     // if data null, create newParentUser
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
@@ -72,6 +73,9 @@ router.post('/signup', (req, res) => {
       // User already exists in database
       res.json({ result: false, error: 'User already exists' });
     }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 
@@ -82,29 +86,32 @@ router.post('/signin', (req, res) => {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-  ParentUser.findOne({ email: req.body.email }).then(data => {
+  ParentUser.findOne({ email: req.body.email })
+  .then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
     }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 
 
-
-//Route pour la visualisation de tous les utilisateurs dans la bdd
-//non utilisé, pour tester 
-router.get('/Allusers', (req, res) => {
-  ParentUser.find().then(data => {
-    res.json({ allUsers: data });
-  });
- });
-
  //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
 router.get('/Infos/:token', (req, res) => {
-  ParentUser.findOne({ token: req.params.token }).then(data => {
-    res.json({ result: true, Parentinfos: data });
+  ParentUser.findOne({ token: req.params.token })
+  .then(data => {
+    if (data) {
+      res.json({ result: true, Parentinfos: data });
+    } else {
+      res.json({ result: false, error: 'User not found' });
+    }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 

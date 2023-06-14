@@ -54,7 +54,6 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
     //calcul du montant total de la mission
     const amount = aidantUser.aidant.rate * differenceInHours
 
-
     const mission = new Mission({
       startingDay,
       endingDay,
@@ -80,7 +79,6 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
     await parentUser.save(); // Enregistrer les modifications dans la collection parentUsers de MongoDB
 
 
-
     res.status(201).json({ result: true, _id: savedMission._id, savedMission: savedMission });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -90,9 +88,17 @@ router.post('/missions/:parentToken/:aidantToken', async (req, res) => {
 
 //route pour afficher les détails de la mission par rapport à l'id de la mission
 router.get('/DetailsMission/:_id', (req, res) => {
-  Mission.findOne({ _id: req.params._id}).populate('idAidant idParent')
+  Mission.findOne({ _id: req.params._id})
+  .populate('idAidant idParent')
   .then(data => {
-    res.json({ result: true, Aidantinfos: data });
+    if (data){
+      res.json({ result: true, infos: data });
+    }  else {
+      res.json({ result: false, error: 'No mission found' });
+    }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 
@@ -106,9 +112,9 @@ router.get('/missionsValidated/:token', async (req, res) => {
 
     if (!parent && !aidant) {
       return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (aidant) {
+    } 
+    
+    else if (aidant) {
       const user = aidant;
       const userId = user._id;
       // Si l'utilisateur connecté est un aidant, récupérez ses missions validées
@@ -121,11 +127,18 @@ router.get('/missionsValidated/:token', async (req, res) => {
           },
         })
         .then((missions) => {
-          res.json(missions);
+          if (missions) {
+            res.json({ result: true, missions: missions });
+          }  else {
+            res.json({ result: false, error: 'No mission found' });
+          }
+        })
+        .catch(error => {
+          res.json({ result: false, error: error.message });
         });
-    }
-
-    if (parent) {
+    } 
+    
+    else if (parent) {
       const user = parent;
       const userId = user._id;
 
@@ -133,14 +146,26 @@ router.get('/missionsValidated/:token', async (req, res) => {
       const missions = await Mission.find({ idParent: userId, isValidate: true })
         .populate('idAidant')
         .then((missions) => {
-          res.json(missions);
+          if (missions) {
+            res.json({ result: true, missions: missions });
+          }  else {
+            res.json({ result: false, error: 'No mission found' });
+          }
+        })
+        .catch(error => {
+          res.json({ result: false, error: error.message });
         });
+    } 
+    
+    else {
+      return res.status(404).json({ error: 'User not found' });
     }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des missions validées' });
-    }
-  });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des missions validées' });
+  }
+});
 
 
 //route pour modifier la validation de la mission de false a true
@@ -171,7 +196,23 @@ router.put('/missions/validate/:id', (req, res) => {
 });
 
 
+// route pour supprimer une mission
+router.delete('/missions/:idMission', (req, res) => {
+  const idMission = req.params.idMission;
 
+  Mission.deleteOne({ _id: idMission })
+    .then(() => {
+      Mission.find()
+      .then(data => {
+        console.log(data);
+      });
+      res.json({ result: true, message: 'Mission supprimée avec succès' });
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ error: 'Erreur lors de la suppression de la mission' });
+    });
+});
 
 
 module.exports = router;

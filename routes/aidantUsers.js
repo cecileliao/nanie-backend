@@ -21,7 +21,8 @@ router.post('/signup', (req, res) => {
     return;
   }
   // Check if the user has not already been registered
-  AidantUser.findOne({ email: req.body.email }).then(data => {
+  AidantUser.findOne({ email: req.body.email })
+  .then(data => {
     // if data null, create newAidantUser
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
@@ -76,7 +77,10 @@ router.post('/signup', (req, res) => {
     else {
       res.json({ result: false, error: 'User already exists' });       // User already exists in database
     }
-  }).catch((err) => console.log(err))
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
+  });
 });
 
 //Route SignIn
@@ -85,12 +89,16 @@ router.post('/signin', (req, res) => {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
-  AidantUser.findOne({ email: req.body.email }).then(data => {
+  AidantUser.findOne({ email: req.body.email })
+  .then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: true, token: data.token });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
     }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 
@@ -111,11 +119,10 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
     ]
   })
     .then(data => {
-      console.log('data', data)
       if (data[0].availabilities.length > 0) {
         res.json({ result: true, dispos: data });
       } else {
-        res.json({ result: false, error: 'No dispo found' });
+        res.json({ result: false, error: 'No availibility found' });
       }
     })
     .catch(error => {
@@ -127,28 +134,35 @@ router.get('/search/:startingDay/:endingDay', (req, res) => {
 ///////Route pour visualiser les dispos d'un aidant selon son token pour les afficher dans sa page de calendrier
 
 router.get('/dispos/:token', (req, res) => {
-  AidantUser.findOne({ token: req.params.token }).then(data => {
-    res.json({ result: true, UserDispos: data.availabilities });
-  });
+  AidantUser.findOne({ token: req.params.token })
+    .then(data => {
+      if (data){
+        res.json({ result: true, UserDispos: data.availabilities });
+      } else {
+        res.json({ result: false, error: 'No availibility found' });
+      }
+    })
+    .catch(error => {
+      res.json({ result: false, error: error.message });
+    });
  });
 
 
 
- //////////route post ajout un dispo d'un aidant
+ //////////route post ajouter une dispo d'un aidant
 
  router.post('/addDispo/:token', (req, res) => {
 
-     
-  AidantUser.findOne({ token: req.params.token }).then(data => {
-
-        // req.body destructuration
-        const { 
-          startingDay,
-          endingDay,
-          startingHour,
-          endingHour,
-        } = req.body;
-  
+  AidantUser.findOne({ token: req.params.token })
+  .then(data => {
+    
+      // req.body destructuration
+      const { 
+        startingDay,
+        endingDay,
+        startingHour,
+        endingHour,
+      } = req.body;
 
       const newAvailability = {
         startingDay,
@@ -162,56 +176,61 @@ router.get('/dispos/:token', (req, res) => {
       data.save().then(savedAvaibility => {
         res.json({ result: true, UserDispos: savedAvaibility.availabilities, newAvailability: newAvailability });
       });
-  }).catch((err) => console.log(err))
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
+  });
 });
 
 //////route pour supprimer une disponibilité d'un aidant 
 
 router.delete('/deleteDispo', (req, res) => {
 
-  AidantUser.findOne({ token: req.body.token }).then(data => {
+  AidantUser.findOne({ token: req.body.token })
 
+  .then(data => {
 
     const availabilityId = req.body.availabilityId;
+    // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
+    //méthode Array.findIndex() pour rechercher l'index de la disponibilité dans le tableau 'data.availabilities'
+    //parcourt chaque élément du tableau et exécuter la fonction pour vérifier si l'id de la dispo existe
+    const availabilityIndex = data.availabilities.findIndex(availability => availability._id == availabilityId);
 
-      // Vérifier si l'ID de disponibilité existe dans le tableau des disponibilités de l'utilisateur
-      //méthode Array.findIndex() pour rechercher l'index de la disponibilité dans le tableau 'data.availabilities'
-      //parcourt chaque élément du tableau et exécuter la fonction pour vérifier si l'id de la dispo existe
-      const availabilityIndex = data.availabilities.findIndex(availability => availability._id == availabilityId);
-      //si trouve l'id va retourner l'index dans la constante availabilityIndex
-        if (availabilityIndex === -1) {
-          //si ne trouve pas l'id retourne -1
-          return res.status(404).json({ error: "La disponibilité n'a pas été trouvée." });
-        }
-        
-        // Supprimer la disponibilité du tableau des disponibilités
-        //méthoe Array.splice pour supprimer du tableau data.availabilities
-        //2 arguments: index de départ et nombre d'éléments à supprimer
-        data.availabilities.splice(availabilityIndex, 1);
+    //si trouve l'id va retourner l'index dans la constante availabilityIndex
+    if (availabilityIndex === -1) {
+      //si ne trouve pas l'id retourne -1
+      return res.status(404).json({ error: "La disponibilité n'a pas été trouvée." });
+    }
     
-        // Enregistrer les modifications
-        data.save().then(savedAvailability => {
-          res.json({ result: true, UserDispos: savedAvailability.availabilities });
-        });
+    // Supprimer la disponibilité du tableau des disponibilités
+    //méthoe Array.splice pour supprimer du tableau data.availabilities
+    //2 arguments: index de départ et nombre d'éléments à supprimer
+    data.availabilities.splice(availabilityIndex, 1);
+
+    // Enregistrer les modifications
+    data.save().then(savedAvailability => {
+      res.json({ result: true, UserDispos: savedAvailability.availabilities });
+    });
   })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
+  });
 });
 
-
-
-
-/////Route pour la visualisation de tous les utilisateurs dans la bdd
-//pour test dans Thunder Client, non utilisé 
-router.get('/Allusers', (req, res) => {
-  AidantUser.find().then(data => {
-    res.json({ allUsers: data });
-  });
- });
 
 //Route pour la visualisation de toutes les informations d'un utilisateur dans la bdd
 //pour afficher le profil utilisateur
 router.get('/Infos/:token', (req, res) => {
-  AidantUser.findOne({ token: req.params.token }).then(data => {
-    res.json({ result: true, Aidantinfos: data });
+  AidantUser.findOne({ token: req.params.token })
+  .then(data => {
+    if (data) {
+      res.json({ result: true, Aidantinfos: data });
+    } else {
+      res.json({ result: false, error: 'No user found' });
+    }
+  })
+  .catch(error => {
+    res.json({ result: false, error: error.message });
   });
 });
 
